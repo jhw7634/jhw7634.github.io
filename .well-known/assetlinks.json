@@ -1,0 +1,8 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "io.github.jhw7634.sqld",
+    "sha256_cert_fingerprints": ["BA:14:F7:5E:C1:33:39:27:49:1C:51:CD:C1:17:EE:DF:7E:C7:12:0D:C1:6A:CF:88:5A:96:C1:88:36:AC:D1:56"]
+  }
+}]

@@ -1,5 +1,6 @@
 # 문제은행 검사: python3 check.py   (필요: pip install pandas scikit-learn tensorflow)
 # 1) 형식 검사 (보기 4개, 정답 번호, 대제목, 함정, 보기별 풀이 why: 정답 칸만 비우고 보기 번호 대신 내용으로)
+# 4) 공부 탭 강의(lessons.js)의 코드를 강의별로 이어서 실행해, 단계마다 출력이 적어 둔 실행 결과(o)와 같은지 확인
 # 3) 파이썬 코드 요약(AICE_NOTES)의 코드를 순서대로 이어 붙여, 만든 예시 데이터(data.csv)로 처음부터 끝까지 실행
 # 2) check가 달린 문제는 파이썬으로 실제 실행해서 출력이 정답 보기와 같고, 나머지 보기와는 달라야 함
 #    (문제마다 새 프로세스에서 실행, pandas는 pd로 미리 불러 둠)
@@ -91,6 +92,25 @@ with tempfile.TemporaryDirectory() as d:
         errors.append(f"코드 요약: 실행 오류 {e}")
 for x in data["n"]:
     if x.get("unit") not in units: errors.append(f"{x['id']}: 없는 대제목 {x.get('unit')}")
+# 공부 탭 강의: 강의마다 한 프로세스에서 위에서부터 이어 실행, 단계 사이에 표시 줄을 찍어 출력을 나눔
+lessons = json.loads(subprocess.run(["node", "-e", "global.window={};require('./lessons.js');console.log(JSON.stringify(window.AICE_LESSONS))"],
+                                    capture_output=True, text=True, check=True, cwd=sys.path[0]).stdout)
+parts_checked = 0
+for les in lessons:
+    code = [p for p in les["parts"] if p.get("c")]
+    for p in code:
+        if "o" not in p: errors.append(f"{les['id']}: 코드에 실행 결과(o)가 없음")
+    src = "\n".join(f"print('@@@{i}')\n{p['c']}" for i, p in enumerate(code))
+    try:
+        outs = run(src).split("@@@")[1:]
+        for i, p in enumerate(code):
+            got = outs[i].split("\n", 1)[1] if i < len(outs) and "\n" in outs[i] else ""
+            if norm(got) != norm(p.get("o", "")):
+                errors.append(f"{les['id']} {i + 1}번째 코드: 실행 결과 [{norm(got)}] ≠ 적어 둔 결과 [{norm(p.get('o', ''))}]")
+            parts_checked += 1
+    except Exception as e:
+        errors.append(f"{les['id']}: 실행 오류 {e}")
+print(f"공부 탭 {len(lessons)}강, 코드 {parts_checked}개 실행 검증")
 for t in traps:
     if sum(q.get("trap") == t for q in qs) != 2: errors.append(f"함정 {t}: 문제가 2개여야 함")
 print(f"파이썬 실행 검증 {checked}문항")

@@ -36,6 +36,7 @@ button:disabled { cursor:default; opacity:.5; }
 .card { background:var(--card); border:1px solid var(--line); border-radius:1rem; padding:1.15rem; }
 .stack { display:flex; flex-direction:column; gap:.6rem; min-width:0; }
 .big { font-size:1.7rem; font-weight:800; font-variant-numeric:tabular-nums; }
+pre.tbl { white-space:pre; overflow-wrap:normal; font-size:.82rem; }
 pre.out { background:var(--accent-soft); color:var(--ink); }
 .lt { white-space:pre-line; }
 pre { margin:0; background:#0f1a33; color:#dfe7ff; border-radius:.75rem; padding:1rem; overflow-x:auto; white-space:pre-wrap; overflow-wrap:anywhere; font-size:.9rem; line-height:1.6; }
@@ -58,6 +59,9 @@ details.card > summary { list-style:none; } details.card > summary::-webkit-deta
 .stats { display:grid; grid-template-columns:repeat(4,1fr); gap:.25rem; text-align:center; }
 .stats .big { font-size:1.35rem; }
 .count { flex:none; font-weight:700; color:var(--accent); font-variant-numeric:tabular-nums; }
+.lv { display:flex; gap:.2rem; padding:.2rem; background:var(--line); border-radius:99px; }
+.lv button { border:0; background:none; padding:.3rem .75rem; border-radius:99px; font-size:.85rem; font-weight:700; color:var(--muted); }
+.lv [aria-pressed="true"] { background:var(--accent); color:var(--card); }
 .tabs { display:grid; grid-template-columns:repeat(5,1fr); gap:.25rem; padding:.3rem; background:var(--line); border-radius:1rem; }
 .tabs button { border:0; background:none; padding:.65rem .2rem; text-align:center; font-weight:700; color:var(--muted); border-radius:.75rem; }
 .tabs [aria-selected="true"] { background:var(--card); color:var(--ink); box-shadow:0 1px 3px #0003; }
@@ -75,21 +79,27 @@ details.card > summary { list-style:none; } details.card > summary::-webkit-deta
 
 <script src="questions.js"></script>
 <script src="lessons.js"></script>
+<script src="basic.js"></script>
 <script>
 // 카카오톡 안의 브라우저는 앱을 닫으면 기록이 지워져서, 기본 브라우저(Chrome·Safari)로 다시 열기
 if (/KAKAOTALK/i.test(navigator.userAgent)) location.href = "kakaotalk://web/openExternal?url=" + encodeURIComponent(location.href);
-const BANK = window.AICE_QUESTIONS || [], UNITS = window.AICE_UNITS || [], NOTES = window.AICE_NOTES || [], LESSONS = window.AICE_LESSONS || [];
+// 단계: Basic(노코딩)과 Associate(파이썬). 고른 단계는 따로 기억하고, 기록도 단계마다 따로 저장
+let pick = "assoc"; try { pick = localStorage.getItem("aice-level") || pick; } catch (e) {}
+const B = pick === "basic" && window.AICE_BASIC, LV = B ? "basic" : "assoc";
+const W = B ? { q: B.questions, u: B.units, n: B.notes, l: B.lessons, t: B.traps } : { q: window.AICE_QUESTIONS, u: window.AICE_UNITS, n: window.AICE_NOTES, l: window.AICE_LESSONS, t: window.AICE_TRAPS };
+const BANK = W.q || [], UNITS = W.u || [], NOTES = W.n || [], LESSONS = W.l || [];
 const byId = Object.fromEntries(BANK.map(q => [q.id, q]));
 const PRACTICE = BANK.filter(q => !q.exam && !q.trap);
-const TRAPS = window.AICE_TRAPS || [], TRAPQ = BANK.filter(q => q.trap); // 함정 요약 20장과 함정마다 2문제
+const TRAPS = W.t || [], TRAPQ = BANK.filter(q => q.trap); // 함정 요약 20장과 함정마다 2문제
 const EXAM = n => BANK.filter(q => q.exam === n).sort((a, b) => a.subject - b.subject); // 시험 순서대로 데이터 분석 먼저
-const EXAM_MIN = 40, PASS = 80;
-const SUBJ = { 1: "데이터 분석·전처리", 2: "모델링·평가" };
-const C = "①②③④", KEY = "aice-quiz-v1", $ = s => document.querySelector(s);
+const EXAM_MIN = B ? 30 : 40, PASS = 80;
+const SUBJ = B ? { 1: "데이터 이해·전처리", 2: "모델링·결과 해석" } : { 1: "데이터 분석·전처리", 2: "모델링·평가" };
+const NOTE = B ? "핵심 개념 요약" : "파이썬 코드 요약";
+const C = "①②③④", KEY = B ? "aice-basic-v1" : "aice-quiz-v1", $ = s => document.querySelector(s);
 const esc = t => String(t).replace(/[&<>"]/g, c => `&#${c.charCodeAt(0)};`);
 const pct = (c, n) => (n ? Math.round((c / n) * 100) : 0);
 const shuffle = a => a.map(x => [Math.random(), x]).sort((p, q) => p[0] - q[0]).map(p => p[1]);
-const code = q => (q.code ? `<pre>${esc(q.code)}</pre>` : "");
+const code = q => (q.code ? `<pre${B ? ' class="tbl"' : ""}>${esc(q.code)}</pre>` : ""); // Basic은 표라서 줄을 바꾸지 않고 옆으로 밀어 봄
 const ans = (q, n) => `<span style="white-space:pre-line">${C[n - 1]} ${esc(q.options[n - 1])}</span>`;
 // 정답이 아닌 보기마다 짧은 풀이 (why[k], 정답 칸은 비어 있음)
 const more = q => (q.why ? `<div class="why"><span class="muted">다른 보기 풀이</span>${q.options.map((o, k) => (q.why[k] ? `<p><strong>${C[k]} ${esc(o)}</strong><br>${esc(q.why[k])}</p>` : "")).join("")}</div>` : "");
@@ -136,12 +146,14 @@ function home() {
   [1, 2].forEach(n => store.runs[n] && Date.now() >= store.runs[n].endAt && finish(n, true));
   const tab = store.tab;
   show(`
-    <div class="row" style="justify-content:space-between"><h1>AICE <span style="color:var(--accent)">오답킬러</span></h1></div>
+    <div class="row" style="justify-content:space-between"><h1>AICE <span style="color:var(--accent)">오답킬러</span></h1>
+      <div class="lv" role="group" aria-label="시험 단계">${[["basic", "Basic"], ["assoc", "Associate"]].map(([k, l]) => `<button data-lv="${k}" aria-pressed="${LV === k}">${l}</button>`).join("")}</div></div>
     <div class="tabs" role="tablist">
       ${[["study", "공부"], ["practice", "연습"], ["trap", "함정"], ["1", "실전 1"], ["2", "실전 2"]].map(([k, l]) => `<button role="tab" data-tab="${k}" aria-selected="${tab === k}">${l}</button>`).join("")}
     </div>
     ${tab === "study" ? studyHome() : tab === "practice" ? practiceHome() : tab === "trap" ? trapHome() : examHome(+tab)}`, {
     "[data-tab]": b => { store.tab = b.dataset.tab; save(); home(); },
+    "[data-lv]": b => { if (b.dataset.lv === LV) return; try { localStorage.setItem("aice-level", b.dataset.lv); } catch (e) {} location.reload(); },
     "#notes": () => notes("wrong"),
     "#review": () => notes("review"),
     "#code": () => codeNotes(),
@@ -169,7 +181,7 @@ function practiceHome() {
       <button id="go" class="main">${left ? (done ? `이어서 풀기 · 남은 ${left}문제` : "첫 문제 풀기") : "전체 문제 다시 보기"}</button>
     </div>
     <div class="split">${small("notes", "오답노트", wrongIds().length, "bad")}${small("review", "다시보기", reviewIds().length, "accent")}</div>
-    ${small("code", "파이썬 코드 요약", `${NOTES.length}단계`, "accent")}
+    ${small("code", NOTE, `${NOTES.length}단계`, "accent")}
     <div class="row" style="justify-content:space-between;margin-top:.4rem"><h2>단원별로 풀기</h2><button id="all" class="chip">전체 ${PRACTICE.length}문제</button></div>
     ${[1, 2].map(k => `<h3 class="muted" style="margin:0">${SUBJ[k]}</h3>
       ${UNITS.filter(u => u.subject === k).map(unitCard).join("")}`).join("")}`;
@@ -208,7 +220,7 @@ function examHome(n) {
         <div><div class="big">${EXAM_MIN}분</div><span class="muted">시험 시간</span></div>
         <div><div class="big">${PASS}점</div><span class="muted">합격</span></div>
       </div>
-      <p class="muted">실제 시험(90분, ${PASS}점 이상 합격)은 파이썬 코드를 직접 짜는 실습형이에요. 여기서는 같은 순서로 ${SUBJ[1]} ${n1}문항, ${SUBJ[2]} ${qs.length - n1}문항을 객관식으로 풀어요. 한 문항 ${100 / qs.length}점이고, 다 풀고 제출하면 한 번에 채점해요.</p>
+      <p class="muted">실제 시험(${B ? "60분" : "90분"}, ${PASS}점 이상 합격)은 ${B ? "코딩 없이 AutoML 도구로 데이터를 분석하고 모델을 만드는" : "파이썬 코드를 직접 짜는"} 실습형이에요. 여기서는 같은 순서로 ${SUBJ[1]} ${n1}문항, ${SUBJ[2]} ${qs.length - n1}문항을 객관식으로 풀어요. 한 문항 ${100 / qs.length}점이고, 다 풀고 제출하면 한 번에 채점해요.</p>
     </div>
     ${rec ? `<div class="card stats" style="grid-template-columns:repeat(3,1fr)">
       <div><div class="big" style="color:var(--${rec.last.pass ? "ok" : "bad"})">${rec.last.score}</div><span class="muted">최근 점수 · ${rec.last.pass ? "합격" : "불합격"}</span></div>
@@ -230,8 +242,8 @@ function studyHome() {
       <progress value="${done}" max="${LESSONS.length}"></progress>
       <button id="learn" class="main">${next ? (done ? `이어서 읽기 · ${esc(next.title)}` : "첫 강의 읽기") : "처음부터 다시 읽기"}</button>
     </div>
-    <p class="muted">파이썬을 몰라도 괜찮아요. 위에서부터 차례대로 읽으면 시험에 나오는 코드를 읽을 수 있게 돼요. 코드 아래 파란 칸은 실제로 실행한 결과예요.</p>
-    <button id="code" class="card row" style="justify-content:space-between;padding:.8rem 1rem"><strong>파이썬 코드 요약</strong><span class="count">${NOTES.length}단계</span></button>
+    <p class="muted">${B ? "AI를 처음 배워도 괜찮아요. 위에서부터 차례대로 읽으면 시험에 나오는 개념을 이해할 수 있게 돼요." : "파이썬을 몰라도 괜찮아요. 위에서부터 차례대로 읽으면 시험에 나오는 코드를 읽을 수 있게 돼요. 코드 아래 파란 칸은 실제로 실행한 결과예요."}</p>
+    <button id="code" class="card row" style="justify-content:space-between;padding:.8rem 1rem"><strong>${NOTE}</strong><span class="count">${NOTES.length}단계</span></button>
     ${groups.map(g => `<h3 class="muted" style="margin:.4rem 0 0">${esc(g)}</h3>
       ${LESSONS.map((l, i) => [l, i]).filter(([l]) => l.g === g).map(([l, i]) => `
       <button data-lesson="${i}" class="card stack" style="gap:.2rem;padding:.8rem 1rem">
@@ -246,7 +258,7 @@ function lesson(i) {
   show(`
     <div class="row" style="flex-wrap:nowrap"><button id="back" aria-label="뒤로" class="back">←</button><span class="muted">${esc(l.g)} · ${i + 1} / ${LESSONS.length}</span></div>
     <h1 style="font-size:1.45rem">${esc(l.title)}</h1>
-    ${l.parts.map(p => `<p class="lt">${esc(p.t)}</p>${p.c ? `<pre>${esc(p.c)}</pre>` : ""}${p.o != null ? `<pre class="out" aria-label="실행 결과">${esc(p.o)}</pre>` : ""}`).join("")}
+    ${l.parts.map(p => `<p class="lt">${esc(p.t)}</p>${p.c ? `<pre>${esc(p.c)}</pre>` : ""}${p.o != null ? `<pre class="out" aria-label="실행 결과">${esc(p.o)}</pre>` : ""}${p.b ? `<pre class="out tbl">${esc(p.b)}</pre>` : ""}`).join("")}
     <div class="split" style="margin-top:.6rem"><button id="prev" class="center" ${i ? "" : "disabled"}>이전 강의</button>
       <button id="next" class="main">${i < LESSONS.length - 1 ? "다음 강의" : "공부 끝, 연습하러 가기"}</button></div>`, {
     "#back": home,
@@ -417,17 +429,17 @@ function notes(mode) {
   });
 }
 
-// 파이썬 코드 요약: 시험 순서대로 단계별 핵심 코드. 제목을 누르면 펼치고, 그 단원 문제로 바로 이동
+// 파이썬 코드 요약(Basic은 핵심 개념 요약): 시험 순서대로 단계별 핵심. 제목을 누르면 펼치고, 그 단원 문제로 바로 이동
 function codeNotes() {
   show(`
-    <div class="row"><button id="back" aria-label="뒤로" class="back">←</button><h2>파이썬 코드 요약</h2></div>
-    <p class="muted">시험 순서대로 꼭 알아야 할 코드예요. 단계를 누르면 코드와 자주 하는 실수가 열려요.</p>
+    <div class="row"><button id="back" aria-label="뒤로" class="back">←</button><h2>${NOTE}</h2></div>
+    <p class="muted">시험 순서대로 꼭 알아야 할 ${B ? "개념이에요" : "코드예요"}. 단계를 누르면 ${B ? "핵심 정리" : "코드"}와 자주 하는 실수가 열려요.</p>
     ${NOTES.map((x, i) => { const u = UNITS.find(u => u.id === x.unit); return `
     <details class="card">
       <summary class="row" style="justify-content:space-between;flex-wrap:nowrap;cursor:pointer"><strong><span style="color:var(--accent)">${i + 1}.</span> ${esc(x.title)}</strong></summary>
       <div class="stack" style="margin-top:.8rem">
         <p>${esc(x.body)}</p>
-        <pre>${esc(x.code)}</pre>
+        <pre${x.code ? "" : ' class="tbl"'}>${esc(x.code || x.ex)}</pre>
         ${x.tips?.length ? `<div class="stack" style="gap:.3rem"><strong style="color:var(--bad)">자주 하는 실수</strong>${x.tips.map(t => `<span>· ${esc(t)}</span>`).join("")}</div>` : ""}
         <button data-unit="${x.unit}" class="center">관련 문제 풀기 · ${esc(u.title)}</button>
       </div>
@@ -437,7 +449,7 @@ function codeNotes() {
   });
 }
 
-// ---------- 실전 모의고사: 90분 타이머, 답안지, 제출 후 한 번에 채점 ----------
+// ---------- 실전 모의고사: 타이머(EXAM_MIN), 답안지, 제출 후 한 번에 채점 ----------
 function startExam(n, fresh) {
   if (fresh || !store.runs[n]) store.runs[n] = { answers: {}, i: 0, start: Date.now(), endAt: Date.now() + EXAM_MIN * 60000 };
   save();

@@ -36,6 +36,8 @@ button:disabled { cursor:default; opacity:.5; }
 .card { background:var(--card); border:1px solid var(--line); border-radius:1rem; padding:1.15rem; }
 .stack { display:flex; flex-direction:column; gap:.6rem; min-width:0; }
 .big { font-size:1.7rem; font-weight:800; font-variant-numeric:tabular-nums; }
+pre.out { background:var(--accent-soft); color:var(--ink); }
+.lt { white-space:pre-line; }
 pre { margin:0; background:#0f1a33; color:#dfe7ff; border-radius:.75rem; padding:1rem; overflow-x:auto; white-space:pre-wrap; overflow-wrap:anywhere; font-size:.9rem; line-height:1.6; }
 .qtext { font-size:1.25rem; line-height:1.6; }
 .opt { display:flex; gap:.8rem; font-size:1.05rem; }
@@ -56,8 +58,8 @@ details.card > summary { list-style:none; } details.card > summary::-webkit-deta
 .stats { display:grid; grid-template-columns:repeat(4,1fr); gap:.25rem; text-align:center; }
 .stats .big { font-size:1.35rem; }
 .count { flex:none; font-weight:700; color:var(--accent); font-variant-numeric:tabular-nums; }
-.tabs { display:grid; grid-template-columns:repeat(4,1fr); gap:.25rem; padding:.3rem; background:var(--line); border-radius:1rem; }
-.tabs button { border:0; background:none; padding:.65rem .4rem; text-align:center; font-weight:700; color:var(--muted); border-radius:.75rem; }
+.tabs { display:grid; grid-template-columns:repeat(5,1fr); gap:.25rem; padding:.3rem; background:var(--line); border-radius:1rem; }
+.tabs button { border:0; background:none; padding:.65rem .2rem; text-align:center; font-weight:700; color:var(--muted); border-radius:.75rem; }
 .tabs [aria-selected="true"] { background:var(--card); color:var(--ink); box-shadow:0 1px 3px #0003; }
 .bar { position:sticky; top:env(safe-area-inset-top, 0px); z-index:1; background:var(--bg); padding-block:.3rem; justify-content:space-between; }
 .timer { font-weight:800; font-size:1.15rem; font-variant-numeric:tabular-nums; }
@@ -72,10 +74,11 @@ details.card > summary { list-style:none; } details.card > summary::-webkit-deta
 <div id="dock" hidden><div id="dockIn"></div></div>
 
 <script src="questions.js"></script>
+<script src="lessons.js"></script>
 <script>
 // 카카오톡 안의 브라우저는 앱을 닫으면 기록이 지워져서, 기본 브라우저(Chrome·Safari)로 다시 열기
 if (/KAKAOTALK/i.test(navigator.userAgent)) location.href = "kakaotalk://web/openExternal?url=" + encodeURIComponent(location.href);
-const BANK = window.AICE_QUESTIONS || [], UNITS = window.AICE_UNITS || [], NOTES = window.AICE_NOTES || [];
+const BANK = window.AICE_QUESTIONS || [], UNITS = window.AICE_UNITS || [], NOTES = window.AICE_NOTES || [], LESSONS = window.AICE_LESSONS || [];
 const byId = Object.fromEntries(BANK.map(q => [q.id, q]));
 const PRACTICE = BANK.filter(q => !q.exam && !q.trap);
 const TRAPS = window.AICE_TRAPS || [], TRAPQ = BANK.filter(q => q.trap); // 함정 요약 20장과 함정마다 2문제
@@ -92,8 +95,8 @@ const ans = (q, n) => `<span style="white-space:pre-line">${C[n - 1]} ${esc(q.op
 const more = q => (q.why ? `<div class="why"><span class="muted">다른 보기 풀이</span>${q.options.map((o, k) => (q.why[k] ? `<p><strong>${C[k]} ${esc(o)}</strong><br>${esc(q.why[k])}</p>` : "")).join("")}</div>` : "");
 const clock = ms => { const t = Math.max(0, Math.ceil(ms / 1000)); return `${String(Math.floor(t / 60)).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}`; };
 
-// 이 브라우저에만 저장: 연습 통계(stats, last), 오답(wrong), 실전 기록(exams), 푸는 중인 실전(runs)
-const store = { wrong: {}, stats: { 1: { s: 0, c: 0 }, 2: { s: 0, c: 0 } }, last: {}, exams: {}, runs: {}, tab: "practice" };
+// 이 브라우저에만 저장: 연습 통계(stats, last), 오답(wrong), 실전 기록(exams), 푸는 중인 실전(runs), 읽은 강의(read)
+const store = { wrong: {}, stats: { 1: { s: 0, c: 0 }, 2: { s: 0, c: 0 } }, last: {}, exams: {}, runs: {}, read: {}, tab: "study" };
 try { Object.assign(store, JSON.parse(localStorage.getItem(KEY))); } catch (e) {}
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} };
 const reviewIds = () => Object.keys(store.wrong).filter(id => byId[id]); // 다시보기: 한 번이라도 틀린 문제
@@ -128,20 +131,22 @@ function dock(html, handlers, cls = "") {
   fit();
 }
 
-// ---------- 첫 화면: 연습 / 함정 / 실전 1 / 실전 2 ----------
+// ---------- 첫 화면: 공부 / 연습 / 함정 / 실전 1 / 실전 2 ----------
 function home() {
   [1, 2].forEach(n => store.runs[n] && Date.now() >= store.runs[n].endAt && finish(n, true));
   const tab = store.tab;
   show(`
     <div class="row" style="justify-content:space-between"><h1>AICE <span style="color:var(--accent)">오답킬러</span></h1></div>
     <div class="tabs" role="tablist">
-      ${[["practice", "연습"], ["trap", "함정"], ["1", "실전 1"], ["2", "실전 2"]].map(([k, l]) => `<button role="tab" data-tab="${k}" aria-selected="${tab === k}">${l}</button>`).join("")}
+      ${[["study", "공부"], ["practice", "연습"], ["trap", "함정"], ["1", "실전 1"], ["2", "실전 2"]].map(([k, l]) => `<button role="tab" data-tab="${k}" aria-selected="${tab === k}">${l}</button>`).join("")}
     </div>
-    ${tab === "practice" ? practiceHome() : tab === "trap" ? trapHome() : examHome(+tab)}`, {
+    ${tab === "study" ? studyHome() : tab === "practice" ? practiceHome() : tab === "trap" ? trapHome() : examHome(+tab)}`, {
     "[data-tab]": b => { store.tab = b.dataset.tab; save(); home(); },
     "#notes": () => notes("wrong"),
     "#review": () => notes("review"),
     "#code": () => codeNotes(),
+    "#learn": () => lesson(Math.max(0, LESSONS.findIndex(l => !store.read[l.id]))),
+    "[data-lesson]": b => lesson(+b.dataset.lesson),
     "#all": () => { prefs.unit = "all"; list(); },
     "#go": () => { const todo = PRACTICE.filter(q => !(q.id in store.last)); todo.length ? start(todo, false) : (prefs.unit = "all", list()); },
     "[data-unit]": b => { prefs.unit = b.dataset.unit; list(); },
@@ -213,6 +218,41 @@ function examHome(n) {
     <button id="start" class="main">${run ? `이어서 풀기 · 남은 시간 ${clock(run.endAt - Date.now())}` : rec ? "다시 응시하기" : "시험 시작"}</button>
     ${run ? `<button id="restart" class="center">처음부터 다시 풀기</button>` : ""}
     ${rec ? `<button id="result" class="center">지난 결과와 해설 보기</button>` : ""}`;
+}
+
+// ---------- 공부: 왕초보용 강의, 묶음별 목록과 읽은 표시 ----------
+function studyHome() {
+  const done = LESSONS.filter(l => store.read[l.id]).length, next = LESSONS.find(l => !store.read[l.id]);
+  const groups = [...new Set(LESSONS.map(l => l.g))];
+  return `
+    <div class="card stack">
+      <span class="row" style="justify-content:space-between"><strong>읽은 강의 ${done} / ${LESSONS.length}</strong></span>
+      <progress value="${done}" max="${LESSONS.length}"></progress>
+      <button id="learn" class="main">${next ? (done ? `이어서 읽기 · ${esc(next.title)}` : "첫 강의 읽기") : "처음부터 다시 읽기"}</button>
+    </div>
+    <p class="muted">파이썬을 몰라도 괜찮아요. 위에서부터 차례대로 읽으면 시험에 나오는 코드를 읽을 수 있게 돼요. 코드 아래 파란 칸은 실제로 실행한 결과예요.</p>
+    <button id="code" class="card row" style="justify-content:space-between;padding:.8rem 1rem"><strong>파이썬 코드 요약</strong><span class="count">${NOTES.length}단계</span></button>
+    ${groups.map(g => `<h3 class="muted" style="margin:.4rem 0 0">${esc(g)}</h3>
+      ${LESSONS.map((l, i) => [l, i]).filter(([l]) => l.g === g).map(([l, i]) => `
+      <button data-lesson="${i}" class="card stack" style="gap:.2rem;padding:.8rem 1rem">
+        <span class="row" style="justify-content:space-between;flex-wrap:nowrap"><strong>${i + 1}. ${esc(l.title)}</strong>${store.read[l.id] ? '<span class="tag ok" style="flex:none">읽음</span>' : ""}</span>
+        <span class="muted">${esc(l.sum)}</span>
+      </button>`).join("")}`).join("")}`;
+}
+
+function lesson(i) {
+  const l = LESSONS[i];
+  if (!store.read[l.id]) { store.read[l.id] = 1; save(); }
+  show(`
+    <div class="row" style="flex-wrap:nowrap"><button id="back" aria-label="뒤로" class="back">←</button><span class="muted">${esc(l.g)} · ${i + 1} / ${LESSONS.length}</span></div>
+    <h1 style="font-size:1.45rem">${esc(l.title)}</h1>
+    ${l.parts.map(p => `<p class="lt">${esc(p.t)}</p>${p.c ? `<pre>${esc(p.c)}</pre>` : ""}${p.o != null ? `<pre class="out" aria-label="실행 결과">${esc(p.o)}</pre>` : ""}`).join("")}
+    <div class="split" style="margin-top:.6rem"><button id="prev" class="center" ${i ? "" : "disabled"}>이전 강의</button>
+      <button id="next" class="main">${i < LESSONS.length - 1 ? "다음 강의" : "공부 끝, 연습하러 가기"}</button></div>`, {
+    "#back": home,
+    "#prev": () => lesson(i - 1),
+    "#next": () => (i < LESSONS.length - 1 ? lesson(i + 1) : ((store.tab = "practice"), save(), home())),
+  });
 }
 
 // ---------- 연습 ----------

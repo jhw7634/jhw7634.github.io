@@ -142,7 +142,7 @@ function dock(html, handlers, cls = "") {
   fit();
 }
 
-// ---------- 첫 화면: 공부 / 연습 / 함정 / 실전 1 / 실전 2 ----------
+// ---------- 첫 화면: 이론 / 연습 / 함정 / 실전 1 / 실전 2 ----------
 function home() {
   [1, 2].forEach(n => store.runs[n] && Date.now() >= store.runs[n].endAt && finish(n, true));
   const tab = store.tab;
@@ -150,7 +150,7 @@ function home() {
     <div class="row" style="justify-content:space-between"><h1>AICE <span style="color:var(--accent)">오답킬러</span></h1>
       <div class="lv" role="group" aria-label="시험 단계">${[["basic", "Basic"], ["assoc", "Associate"]].map(([k, l]) => `<button data-lv="${k}" aria-pressed="${LV === k}">${l}</button>`).join("")}</div></div>
     <div class="tabs" role="tablist">
-      ${[["study", "공부"], ["practice", "연습"], ["trap", "함정"], ["1", "실전 1"], ["2", "실전 2"]].map(([k, l]) => `<button role="tab" data-tab="${k}" aria-selected="${tab === k}">${l}</button>`).join("")}
+      ${[["study", "이론"], ["practice", "연습"], ["trap", "함정"], ["1", "실전 1"], ["2", "실전 2"]].map(([k, l]) => `<button role="tab" data-tab="${k}" aria-selected="${tab === k}">${l}</button>`).join("")}
     </div>
     ${tab === "study" ? studyHome() : tab === "practice" ? practiceHome() : tab === "trap" ? trapHome() : examHome(+tab)}`, {
     "[data-tab]": b => { store.tab = b.dataset.tab; save(); home(); },
@@ -233,7 +233,7 @@ function examHome(n) {
     ${rec ? `<button id="result" class="center">지난 결과와 해설 보기</button>` : ""}`;
 }
 
-// ---------- 공부: 왕초보용 강의, 묶음별 목록과 읽은 표시 ----------
+// ---------- 이론: 왕초보용 강의, 묶음별 목록과 읽은 표시 ----------
 function studyHome() {
   const done = LESSONS.filter(l => store.read[l.id]).length, next = LESSONS.find(l => !store.read[l.id]);
   const groups = [...new Set(LESSONS.map(l => l.g))];
@@ -261,7 +261,7 @@ function lesson(i) {
     <h1 style="font-size:1.45rem">${esc(l.title)}</h1>
     ${l.parts.map(p => `<p class="lt">${esc(p.t)}</p>${p.c ? `<pre>${esc(p.c)}</pre>` : ""}${p.o != null ? `<pre class="out" aria-label="실행 결과">${esc(p.o)}</pre>` : ""}${p.b ? `<pre class="out tbl">${esc(p.b)}</pre>` : ""}`).join("")}
     <div class="split" style="margin-top:.6rem"><button id="prev" class="center" ${i ? "" : "disabled"}>이전 강의</button>
-      <button id="next" class="main">${i < LESSONS.length - 1 ? "다음 강의" : "공부 끝, 연습하러 가기"}</button></div>`, {
+      <button id="next" class="main">${i < LESSONS.length - 1 ? "다음 강의" : "이론 끝, 연습하러 가기"}</button></div>`, {
     "#back": home,
     "#prev": () => lesson(i - 1),
     "#next": () => (i < LESSONS.length - 1 ? lesson(i + 1) : ((store.tab = "practice"), save(), home())),

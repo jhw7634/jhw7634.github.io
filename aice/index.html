@@ -39,6 +39,7 @@ button:disabled { cursor:default; opacity:.5; }
 pre.tbl { white-space:pre; overflow-wrap:normal; font-size:.82rem; }
 pre.out { background:var(--accent-soft); color:var(--ink); }
 .lt { white-space:pre-line; }
+.keys { display:block; font-size:.8rem; font-weight:400; line-height:1.5; margin-top:.15rem; opacity:.9; } /* 이어서 읽기 아래 그 강의의 함수·인자·메서드 */
 pre { margin:0; background:#0f1a33; color:#dfe7ff; border-radius:.75rem; padding:1rem; overflow-x:auto; white-space:pre-wrap; overflow-wrap:anywhere; font-size:.9rem; line-height:1.6; }
 .qtext { font-size:1.25rem; line-height:1.6; }
 .opt { display:flex; gap:.8rem; font-size:1.05rem; }
@@ -240,7 +241,7 @@ function studyHome() {
     <div class="card stack">
       <span class="row" style="justify-content:space-between"><strong>읽은 강의 ${done} / ${LESSONS.length}</strong></span>
       <progress value="${done}" max="${LESSONS.length}"></progress>
-      <button id="learn" class="main">${next ? (done ? `이어서 읽기 · ${esc(next.title)}` : "첫 강의 읽기") : "처음부터 다시 읽기"}</button>
+      <button id="learn" class="main">${next ? (done ? `이어서 읽기 · ${esc(next.title)}` : "첫 강의 읽기") : "처음부터 다시 읽기"}${(next || LESSONS[0])?.k ? `<small class="keys">(${esc((next || LESSONS[0]).k)})</small>` : ""}</button>
     </div>
     <p class="muted">${B ? "AI를 처음 배워도 괜찮아요. 위에서부터 차례대로 읽으면 시험에 나오는 개념을 이해할 수 있게 돼요." : "파이썬을 몰라도 괜찮아요. 위에서부터 차례대로 읽으면 시험에 나오는 코드를 읽을 수 있게 돼요. 코드 아래 파란 칸은 실제로 실행한 결과예요."}</p>
     <button id="code" class="card row" style="justify-content:space-between;padding:.8rem 1rem"><strong>${NOTE}</strong><span class="count">${NOTES.length}단계</span></button>

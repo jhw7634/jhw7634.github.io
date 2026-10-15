@@ -169,9 +169,8 @@ th{font-size:12px;color:var(--muted);font-weight:700}
 #game .bar .big{padding:10px 8px;font-size:15px}
 #gterms button{padding:3px 9px;font-size:12px}
 #s-play{padding-bottom:calc(66px + env(safe-area-inset-bottom,0px))}
-.coach{position:absolute;left:17%;right:17%;padding:6px 10px!important;top:28%;bottom:auto;font-size:12px!important;z-index:350;background:rgba(20,16,12,.6);color:#FFF3D6;border:1px solid rgba(240,185,74,.6);border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.45;backdrop-filter:blur(3px);cursor:pointer}
+.coach{position:static;background:var(--gold-soft);color:var(--ink);border:1px solid var(--gold);border-radius:10px;padding:6px 10px;font-size:13px;line-height:1.45;cursor:pointer}
 .coach b{color:var(--gold);margin-right:6px}
-.coach small{display:block;opacity:.7;font-size:11px;margin-top:3px}
 .hud{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
 .msg{min-height:48px;display:flex;flex-direction:column;gap:6px}
 .msg .m{font-size:15px;font-weight:500}
@@ -215,6 +214,7 @@ th{font-size:12px;color:var(--muted);font-weight:700}
     <div class="hud"><span id="ghud"></span><span><button id="gsnd" style="padding:5px 10px;font-size:12px">소리 켬</button> <button id="gquit" style="padding:5px 10px;font-size:12px">그만하기</button></span></div>
     <div class="st gst" id="gst"></div>
     <div class="msg"><div class="m" id="gm"></div></div>
+    <div id="gcw"></div>
     <div class="bar">
       <button id="bPpong" class="big" disabled>뻥!</button><button id="bStop" class="big" disabled>스톱!</button><button id="bDiscard" class="big pri" disabled>버리기</button>
       <button id="bCont" class="big" hidden>계속하기</button>
@@ -495,7 +495,7 @@ document.getElementById('s-play').addEventListener('click',()=>ac(),{once:true})
 /* practice coach */
 const coach=document.createElement('div');coach.className='coach';let coachText='';coach.onclick=()=>{coachText='';coach.remove()};
 function tip(t){coachText=PRAC?(t||''):'';placeCoach()}
-function placeCoach(){if(coachText){coach.innerHTML='<b>팁</b>'+esc(coachText)+'<small>누르면 닫혀요</small>';gst.appendChild(coach)}else coach.remove()}
+const gcw=document.getElementById('gcw');function placeCoach(){if(coachText){coach.innerHTML='<b>팁</b>'+esc(coachText);gcw.appendChild(coach)}else coach.remove()}
 function discardTip(p){const cnt={};p.hand.forEach(m=>cnt[m]=(cnt[m]||0)+1);const un=p.hand.filter(m=>cnt[m]===1);const hi=un.length?Math.max(...un):Math.max(...p.hand);
  const pairs=Object.keys(cnt).filter(m=>cnt[m]>=2).map(Number);let t='';
  if(p.meld.length){t='뻥을 했으니 남은 2장 합이 10 이하가 되면 스톱 기회. '+(pairs.length?'같은 월 2장을 들고 있어 누가 '+pairs[0]+'월을 버리면 박을 씌울 수 있어요. ':'')}

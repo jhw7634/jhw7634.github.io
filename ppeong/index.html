@@ -489,7 +489,7 @@ setTimeout(()=>show(0,true),150);
 /* ---------- playable game ---------- */
 (function(){
 const gst=document.getElementById('gst'),gm=document.getElementById('gm'),ghud=document.getElementById('ghud');
-let N=4,ROUNDS=5,STEP=true,PRAC=false,SND=true,aiSel=null,P=[],deck=[],dis=[],cur=0,round=0,reshuffled=false,busy=false,sel=null,phase='idle';
+let N=4,ROUNDS=5,STEP=true,PRAC=false,SND=true,aiSel=null,drawn=null,P=[],deck=[],dis=[],cur=0,round=0,reshuffled=false,busy=false,sel=null,phase='idle';
 const NAMES=['나','B','C','D','E'];
 /* sound: tiny synthesized effects, start only after a tap */
 let AC=null;function ac(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){AC=null}}if(AC&&AC.state==='suspended')AC.resume();return AC}
@@ -525,7 +525,7 @@ const nx=i=>(i+1)%N;
 /* term chips */
 const TERMS={'뻥':'누가 버린 패와 같은 월 2장이 있으면 순서와 상관없이 뻥! 3장을 내려놓고 1장 더 버려요.','스톱':'뻥 후 남은 2장 합이 10 이하이고 다른 뻥한 사람이 있으면 내 차례에 선언. 나보다 작은 사람이 있으면 +30점.','박':'뻥한 사람이 든 2장과 같은 월을 버리면 박. 버린 사람 +20점, 씌운 사람 0점.','10부족':'6장 합이 10 이하면 바로 끝. −100점.','마이너스':'6장이 연속된 월이면 바로 끝. 합만큼 점수에서 빼요.','또이또이':'6장이 같은 월끼리 짝이면 바로 끝. 0점.'};
 const tw=document.getElementById('gterms');Object.keys(TERMS).forEach(k=>{const b=document.createElement('button');b.textContent=k;b.onclick=()=>{document.getElementById('gtip').textContent=k+' — '+TERMS[k]};tw.appendChild(b)});
-function startRound(){round++;HIST.length=0;B.next.textContent='다음 ▶';aiSel=null;sel=null;busy=false;B.next.textContent='다음 ▶';aiSel=null;sel=null;busy=false;deck=[];for(let m=1;m<=12;m++)for(let k=0;k<4;k++)deck.push(m);shuffle(deck);
+function startRound(){round++;HIST.length=0;B.next.textContent='다음 ▶';aiSel=null;drawn=null;sel=null;busy=false;B.next.textContent='다음 ▶';aiSel=null;sel=null;busy=false;deck=[];for(let m=1;m<=12;m++)for(let k=0;k<4;k++)deck.push(m);shuffle(deck);
  dis=[];reshuffled=false;sel=null;const dealer=(round-1)%N;P.forEach((p,i)=>{p.hand=deck.splice(0,i===dealer?6:5);p.meld=[];p.hand.sort((a,b)=>a-b)});cur=dealer;
  say(P[cur].name+(cur===0?'(나)':'')+'이(가) 선. 6장 중 1장을 버리며 시작해요.');render();turnDiscard()}
 function shuffle(d){for(let i=d.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]]}}
@@ -535,11 +535,11 @@ function seat(i){const others={2:[[50,19]],3:[[24,19],[76,19]],4:[[8,54],[50,19]
 function render(){gst.innerHTML='';hud();
  P.forEach((p,i)=>{const [x,y]=seat(i),vert=(x<20||x>80);const n=p.hand.length;
   p.hand.forEach((m,k)=>{const e=document.createElement('div');e.className='cd'+(i===0?' me':(PRAC?'':' dn'));e.innerHTML=face(m,null,vi(p.hand,k))+'<div class="bk"></div>';
-   const off=(k-(n-1)/2)*(i===0?8:(vert?(PRAC?7:5):(PRAC?(N===5?5:5.5):3.5)));e.style.left=(vert?x:x+off)+'%';e.style.top=(vert?y+off:y)+'%';e.style.zIndex=50+k;
-   if(aiSel&&aiSel.i===i&&aiSel.k===k)e.classList.add('sel');if(i===0){if(sel===k)e.classList.add('sel');e.onclick=()=>{if(phase!=='discard'||cur!==0||busy)return;if(sel===k&&act.discard){act.discard();return}sel=k;render();if(act.discard)B.discard.disabled=false}}gst.appendChild(e)});
-  p.meld.forEach((m,k)=>{const e=document.createElement('div');e.className='cd';e.innerHTML=face(m,null,k);const mx=i===0?30:(vert?(x<20?x+9:x-9):x);e.style.left=(mx+(vert?0:(k-1)*6))+'%';e.style.top=i===0?'calc(84% - var(--ch) - 10px)':(vert?'calc('+(y-7*(n-1)/2)+'% - var(--ch) - 48px + '+(k*18)+'px)':'calc('+y+'% + var(--ch) + 6px)');e.style.zIndex=30;e.style.opacity=.92;gst.appendChild(e)});
-  const l=document.createElement('div');l.className='lb'+(i===cur?' turn':'');l.style.left=x+'%';l.style.top=i===0?'calc(84% + var(--ch)/2 + 14px)':(vert?'calc('+(y-7*(n-1)/2)+'% - var(--ch)/2 - 20px)':'calc('+y+'% - var(--ch)/2 - 12px)');if(vert&&p.meld.length)l.style.top='calc('+(y+7*(n-1)/2)+'% + var(--ch)/2 + 20px)';if(i===0||!vert)l.classList.add('one');
-  l.innerHTML='<b>'+p.name+(p.meld.length?'<span class="tag">뻥</span>':'')+'</b>'+(i===0?'합 '+sum(p.hand):n+'장')+(vert?'<br>':' · ')+'누적 '+p.tot;l.style.zIndex=120;gst.appendChild(l)});
+   const off=(k-(n-1)/2)*(i===0?8:(vert?(PRAC?7:5):(PRAC?(N===5?5:5.5):3.5)));e.style.left=(vert?x:x+off)+'%';e.style.top=i===0?'calc(100% - var(--ch)/2 - 30px)':(vert?y+off:y)+'%';e.style.zIndex=50+k;
+   if(aiSel&&aiSel.i===i&&aiSel.k===k)e.classList.add('sel');if(drawn&&drawn.i===i&&drawn.k===k)e.classList.add('hl');if(i===0){if(sel===k)e.classList.add('sel');e.onclick=()=>{if(phase!=='discard'||cur!==0||busy)return;if(sel===k&&act.discard){act.discard();return}sel=k;render();if(act.discard)B.discard.disabled=false}}gst.appendChild(e)});
+  p.meld.forEach((m,k)=>{const e=document.createElement('div');e.className='cd';e.innerHTML=face(m,null,k);const mx=i===0?30:(vert?(x<20?x+9:x-9):x);e.style.left=(mx+(vert?0:(k-1)*6))+'%';e.style.top=i===0?'calc(100% - var(--ch)*1.5 - 44px)':(vert?'calc('+(y-7*(n-1)/2)+'% - var(--ch) - 48px + '+(k*18)+'px)':'calc('+y+'% + var(--ch) + 6px)');e.style.zIndex=30;e.style.opacity=.92;gst.appendChild(e)});
+  const l=document.createElement('div');l.className='lb'+(i===cur?' turn':'');l.style.left=x+'%';l.style.top=i===0?'calc(100% - 14px)':(vert?'calc('+(y-7*(n-1)/2)+'% - var(--ch)/2 - 20px)':'calc('+y+'% - var(--ch)/2 - 12px)');if(vert&&p.meld.length)l.style.top='calc('+(y+7*(n-1)/2)+'% + var(--ch)/2 + 20px)';if(i===0||!vert)l.classList.add('one');
+  const cn={};p.hand.forEach(m=>cn[m]=(cn[m]||0)+1);const prs=Object.keys(cn).filter(m=>cn[m]>=2);l.innerHTML='<b>'+p.name+(p.meld.length?'<span class="tag">뻥</span>':'')+'</b>'+(i===0?'합 '+sum(p.hand):n+'장')+(vert?'<br>':' · ')+'누적 '+p.tot+(i===0&&!p.meld.length?(prs.length?' · 뻥 가능: '+prs.join('·')+'월':' · 같은 월 2장 없음'):'');l.style.zIndex=120;gst.appendChild(l)});
  for(let k=0;k<Math.min(deck.length,6);k++){const e=document.createElement('div');e.className='cd dn';e.innerHTML='<div class="bk"></div>';e.style.left=(42-k*.3)+'%';e.style.top=(46-k*.3)+'%';e.style.zIndex=10+k;gst.appendChild(e)}
  dis.slice(-5).forEach((m,k,a)=>{const e=document.createElement('div');e.className='cd';e.innerHTML=face(m,null,vi(dis,dis.length-a.length+k));e.style.left=(56+k*4)+'%';e.style.top='46%';e.style.zIndex=20+k;if(k===a.length-1)e.classList.add('hl');gst.appendChild(e)});
  const dl=document.createElement('div');dl.className='lb';dl.style.left='42%';dl.style.top='59%';dl.textContent='더미 '+deck.length;gst.appendChild(dl);
@@ -550,7 +550,7 @@ async function turnStart(){phase='turn';render();const p=P[cur];
   else{SFX.tap();tip('내 합 '+sum(p.hand)+'. 상대 손패 합은 보통 20점을 넘으니 '+(sum(p.hand)<=5?'스톱이 유리해요.':'조금 더 줄일지, 지금 멈출지 선택. 다른 뻥한 사람도 2장뿐이라 그 사람 합이 더 작을 수 있어요.'));say('스톱할 수 있어요 (합 '+sum(p.hand)+'). 스톱하면 판이 끝나고, 누가 나보다 작으면 +30점.');return arm({stop:()=>endRound('stop',{who:0}),cont:()=>draw()})}}
  return draw()}
 const HIST=[];function snap(){HIST.push(JSON.stringify({P:P.map(p=>({hand:p.hand,meld:p.meld,tot:p.tot})),deck,dis,cur,reshuffled}));if(HIST.length>20)HIST.shift();B.undo.disabled=HIST.length<2}
-function undo(){if(!HIST.length)return;if(phase==='discard'&&cur===0&&HIST.length>=2)HIST.pop();const st=JSON.parse(HIST[HIST.length-1]);st.P.forEach((q,i)=>{P[i].hand=q.hand;P[i].meld=q.meld;P[i].tot=q.tot});deck=st.deck;dis=st.dis;cur=st.cur;reshuffled=st.reshuffled;busy=false;sel=null;aiSel=null;HIST.pop();tip('');say('내 지난 차례로 돌아왔어요.');turnDiscard()}
+function undo(){if(!HIST.length)return;if(phase==='discard'&&cur===0&&HIST.length>=2)HIST.pop();const st=JSON.parse(HIST[HIST.length-1]);st.P.forEach((q,i)=>{P[i].hand=q.hand;P[i].meld=q.meld;P[i].tot=q.tot});deck=st.deck;dis=st.dis;cur=st.cur;reshuffled=st.reshuffled;busy=false;sel=null;aiSel=null;drawn=null;HIST.pop();tip('');say('내 지난 차례로 돌아왔어요.');turnDiscard()}
 async function turnDiscard(){phase='discard';render();const p=P[cur];if(!p.ai&&PRAC)snap();
  if(p.ai){const k=aiPick(p);aiSel={i:cur,k};render();say(p.name+' 차례: '+p.hand[k]+'월 '+NM[p.hand[k]]+'을(를) 버리려고 해요.');if(PRAC)tip(p.name+': '+aiWhy(p,p.hand[k]));await pause(900);aiSel=null;return discard(cur,k)}
  tip(discardTip(p));say((p.hand.length===6?'6장 중 ':'')+'버릴 패를 눌러 고른 뒤 버리기.');const h=()=>{if(sel===null){say('먼저 버릴 패를 눌러 고르세요.');arm({discard:h});return}discard(0,sel)};arm({discard:h})}
@@ -558,14 +558,14 @@ async function draw(){const p=P[cur];
  if(!deck.length){if(reshuffled)return endRound('exhaust');reshuffled=true;deck=dis.splice(0,dis.length-1);shuffle(deck);say('더미가 떨어져 버린 패를 섞어 다시 돌려요.');render();await pause(900)}
  const c=deck.shift();p.hand.push(c);p.hand.sort((a,b)=>a-b);SFX.draw();
  if(!p.meld.length){const sp=special(p.hand);if(sp){render();say(p.name+': '+sp.k+'!');await pause(800);return endRound('special',{who:cur,sp})}}
- say(p.name+(cur===0?'(나)':'')+' 차례: '+(cur===0?c+'월 '+NM[c]+'을(를) 가져왔어요.':'더미에서 1장 가져옴.'));
- if(cur!==0)render();turnDiscard()}
+ drawn={i:cur,k:p.hand.lastIndexOf(c)};render();say(p.name+(cur===0?'(나)':'')+': 더미에서 '+c+'월 '+NM[c]+'을(를) 가져왔어요.'+(cur===0?' 이제 1장 버리세요.':''));
+ if(cur!==0){await pause(700);drawn=null}turnDiscard()}
 function aiPick(p){const cnt={};p.hand.forEach(m=>cnt[m]=(cnt[m]||0)+1);let best=0,bs=-1e9;
  p.hand.forEach((m,k)=>{let s=m+(cnt[m]>=2?-20:0)+Math.random();if(s>bs){bs=s;best=k}});return best}
 function aiWhy(p,m){const cnt={};p.hand.forEach(x=>cnt[x]=(cnt[x]||0)+1);const pairs=Object.keys(cnt).filter(x=>cnt[x]>=2).map(Number);const un=p.hand.filter(x=>cnt[x]===1);
  if(p.meld.length)return '뻥을 해서 2장만 남기려고 큰 '+m+'월을 버림';
  let w=(un.length&&m>=Math.max(...un))?'짝 없는 패 중 가장 큰 '+m+'월을 버려 합을 줄임':'짝 없는 '+m+'월을 버림';if(pairs.length)w+='. '+pairs.join('·')+'월은 2장씩이라 뻥·박용으로 남김';return w}
-async function discard(i,k,fromPpong){busy=true;arm({});const p=P[i],m=p.hand.splice(k,1)[0];dis.push(m);sel=null;if(!p.ai)tip('');SFX.flip();render();say(p.name+(i===0?'(나)':'')+': '+m+'월 '+NM[m]+' 버림');await pause(700);
+async function discard(i,k,fromPpong){busy=true;arm({});const p=P[i],m=p.hand.splice(k,1)[0];dis.push(m);sel=null;drawn=null;if(!p.ai)tip('');SFX.flip();render();say(p.name+(i===0?'(나)':'')+': '+m+'월 '+NM[m]+' 버림');await pause(700);
  const baker=P.findIndex(q=>q!==p&&q.meld.length&&q.hand.length===2&&q.hand[0]===m&&q.hand[1]===m);
  if(baker>=0){busy=false;SFX.bak();say(P[baker].name+': 박!');render();await pause(800);return endRound('bak',{who:i,baker,ppong:!!fromPpong})}
  for(let s=1;s<N;s++){const j=(i+s)%N,q=P[j];if(q.meld.length)continue;if(q.hand.filter(x=>x===m).length>=2){

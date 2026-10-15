@@ -100,6 +100,7 @@ th{font-size:12px;color:var(--muted);font-weight:700}
 .lb .tag{display:inline-block;background:var(--gold);color:#3A2600;font-size:10px;font-weight:700;padding:0 6px;border-radius:999px;margin-left:3px}
 .lb.turn b{color:var(--gold)}
 .lb.one b{display:inline;margin-right:6px}
+.gst .lb{text-shadow:0 1px 3px rgba(0,0,0,.8)}
 .bb{position:absolute;transform:translate(-50%,-50%) scale(.6);opacity:0;transition:all .35s cubic-bezier(.3,1.6,.5,1);background:var(--gold-soft);color:var(--ink);border:1px solid var(--gold);font-weight:700;font-size:15px;padding:5px 12px;border-radius:10px;white-space:nowrap;z-index:300}
 .bb.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
 .st.big{height:clamp(230px,calc(100vh - 345px),700px);height:clamp(230px,calc(100dvh - 345px),700px);--cw:52px;--ch:76px}
@@ -155,7 +156,7 @@ th{font-size:12px;color:var(--muted);font-weight:700}
 #game .bar .big{padding:10px 8px;font-size:15px}
 #gterms button{padding:3px 9px;font-size:12px}
 #s-play{padding-bottom:calc(66px + env(safe-area-inset-bottom,0px))}
-.coach{position:absolute;left:17%;right:17%;padding:6px 10px!important;top:25%;bottom:auto;font-size:12px!important;z-index:350;background:rgba(20,16,12,.6);color:#FFF3D6;border:1px solid rgba(240,185,74,.6);border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.45;backdrop-filter:blur(3px);cursor:pointer}
+.coach{position:absolute;left:17%;right:17%;padding:6px 10px!important;top:28%;bottom:auto;font-size:12px!important;z-index:350;background:rgba(20,16,12,.6);color:#FFF3D6;border:1px solid rgba(240,185,74,.6);border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.45;backdrop-filter:blur(3px);cursor:pointer}
 .coach b{color:var(--gold);margin-right:6px}
 .coach small{display:block;opacity:.7;font-size:11px;margin-top:3px}
 .hud{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
@@ -511,15 +512,15 @@ function startRound(){round++;HIST.length=0;deck=[];for(let m=1;m<=12;m++)for(le
 function shuffle(d){for(let i=d.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]]}}
 function say(t){gm.textContent=t}
 function hud(){ghud.textContent=round+' / '+ROUNDS+'판 · 더미 '+deck.length+'장'}
-function seat(i){const others={2:[[50,17]],3:[[24,17],[76,17]],4:[[8,44],[50,17],[92,44]],5:[[8,46],[27,17],[73,17],[92,46]]}[N];return i===0?[50,84]:others[i-1]}
+function seat(i){const others={2:[[50,19]],3:[[24,19],[76,19]],4:[[8,54],[50,19],[92,54]],5:[[8,58],[28,19],[72,19],[92,58]]}[N];return i===0?[50,84]:others[i-1]}
 function render(){gst.innerHTML='';hud();
  P.forEach((p,i)=>{const [x,y]=seat(i),vert=(x<20||x>80);const n=p.hand.length;
   p.hand.forEach((m,k)=>{const e=document.createElement('div');e.className='cd'+(i===0?' me':(PRAC?'':' dn'));e.innerHTML=face(m,null,vi(p.hand,k))+'<div class="bk"></div>';
-   const off=(k-(n-1)/2)*(i===0?8:(vert?(PRAC?7:5):(PRAC?5.5:3.5)));e.style.left=(vert?x:x+off)+'%';e.style.top=(vert?y+off:y)+'%';e.style.zIndex=50+k;
+   const off=(k-(n-1)/2)*(i===0?8:(vert?(PRAC?7:5):(PRAC?(N===5?5:5.5):3.5)));e.style.left=(vert?x:x+off)+'%';e.style.top=(vert?y+off:y)+'%';e.style.zIndex=50+k;
    if(i===0){if(sel===k)e.classList.add('pick');e.onclick=()=>{if(phase!=='discard'||cur!==0||busy)return;sel=k;render()}}gst.appendChild(e)});
   p.meld.forEach((m,k)=>{const e=document.createElement('div');e.className='cd';e.innerHTML=face(m,null,k);const mx=i===0?30:(vert?(x<20?x+9:x-9):x),my=i===0?68:(vert?y-16:y+14);e.style.left=(mx+(vert?0:(k-1)*6))+'%';e.style.top=(my+(vert?(k-1)*5:0))+'%';e.style.zIndex=30;e.style.opacity=.92;gst.appendChild(e)});
-  const l=document.createElement('div');l.className='lb'+(i===cur?' turn':'');l.style.left=x+'%';l.style.top=(i===0?95.5:(vert?y-9.5*(n-1)/2-9:y-11.5))+'%';if(vert&&p.meld.length)l.style.top=(y+5.5*(n-1)/2+9)+'%';if(i===0)l.classList.add('one');
-  l.innerHTML='<b>'+p.name+(p.meld.length?'<span class="tag">뻥</span>':'')+'</b>'+(i===0?'합 '+sum(p.hand):n+'장')+(vert?'<br>':' · ')+'누적 '+p.tot;gst.appendChild(l)});
+  const l=document.createElement('div');l.className='lb'+(i===cur?' turn':'');l.style.left=x+'%';l.style.top=(i===0?95.5:(vert?y-7*(n-1)/2-12.5:y-9.5))+'%';if(vert&&p.meld.length)l.style.top=(y+5.5*(n-1)/2+9)+'%';if(i===0||!vert)l.classList.add('one');
+  l.innerHTML='<b>'+p.name+(p.meld.length?'<span class="tag">뻥</span>':'')+'</b>'+(i===0?'합 '+sum(p.hand):n+'장')+(vert?'<br>':' · ')+'누적 '+p.tot;l.style.zIndex=120;gst.appendChild(l)});
  for(let k=0;k<Math.min(deck.length,6);k++){const e=document.createElement('div');e.className='cd dn';e.innerHTML='<div class="bk"></div>';e.style.left=(42-k*.3)+'%';e.style.top=(46-k*.3)+'%';e.style.zIndex=10+k;gst.appendChild(e)}
  dis.slice(-5).forEach((m,k,a)=>{const e=document.createElement('div');e.className='cd';e.innerHTML=face(m,null,vi(dis,dis.length-a.length+k));e.style.left=(56+k*4)+'%';e.style.top='46%';e.style.zIndex=20+k;if(k===a.length-1)e.classList.add('hl');gst.appendChild(e)});
  const dl=document.createElement('div');dl.className='lb';dl.style.left='42%';dl.style.top='59%';dl.textContent='더미 '+deck.length;gst.appendChild(dl);

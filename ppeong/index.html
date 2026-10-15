@@ -161,11 +161,16 @@ th{font-size:12px;color:var(--muted);font-weight:700}
 .gst .cd.me.sel{transform:translateY(-10px)}
 .bar{display:flex;gap:8px;flex-wrap:wrap}
 .bar .big{flex:1;min-width:90px;padding:12px 10px;font-size:16px;font-weight:700}
+.bar .big.hot{background:var(--red);border-color:var(--red);color:#fff;animation:hot .7s ease-in-out infinite alternate}
+@keyframes hot{from{box-shadow:0 0 0 0 rgba(211,47,47,.5)}to{box-shadow:0 0 0 6px rgba(211,47,47,0)}}
 #gterms button{padding:5px 11px;border-radius:999px;font-size:13px}
 #game{display:flex;flex-direction:column;gap:8px;flex:1 1 auto;min-height:0}
 #game .gst{flex:1 1 auto;min-height:220px;height:auto}
-#game .msg{min-height:0}
-#game .msg .m{font-size:14px;line-height:1.4}
+#game .msg{min-height:40px}
+#game .msg .m{font-size:14px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+#gcw{min-height:38px;display:flex;flex-direction:column;justify-content:center}
+#game .coach{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+#game .bar{min-height:50px}
 #game .bar .big{padding:10px 8px;font-size:15px}
 #gterms button{padding:3px 9px;font-size:12px}
 #s-play{padding-bottom:calc(66px + env(safe-area-inset-bottom,0px))}
@@ -511,8 +516,8 @@ document.getElementById('gquit').onclick=()=>{document.getElementById('setup').h
 /* action bar */
 const B={ppong:document.getElementById('bPpong'),stop:document.getElementById('bStop'),discard:document.getElementById('bDiscard'),cont:document.getElementById('bCont'),next:document.getElementById('bNext'),undo:document.getElementById('bUndo')};
 let act={};
-function arm(o){act=o||{};Object.keys(B).forEach(k=>{if(k!=='undo')B[k].disabled=!act[k]});B.cont.hidden=!act.cont;B.next.hidden=false;B.next.disabled=!act.next;B.undo.hidden=false;B.undo.disabled=HIST.length<2||busy||phase!=='discard'||cur!==0}
-Object.keys(B).forEach(k=>{if(k==='undo')return;B[k].onclick=()=>{const f=act[k];if(f){SFX.tap();arm({});f()}}});B.undo.onclick=()=>{if(phase==='discard'&&cur===0&&!busy){SFX.tap();undo()}};
+function arm(o){act=o||{};Object.keys(B).forEach(k=>{if(k!=='undo')B[k].disabled=!act[k]});B.cont.hidden=!act.cont;B.next.hidden=false;B.next.disabled=!act.next;B.undo.hidden=false;B.undo.disabled=!HIST.length||busy||phase==='end';B.ppong.classList.toggle('hot',!!act.ppong);B.stop.classList.toggle('hot',!!act.stop)}
+Object.keys(B).forEach(k=>{if(k==='undo')return;B[k].onclick=()=>{const f=act[k];if(f){SFX.tap();arm({});f()}}});B.undo.onclick=()=>{if(HIST.length&&!busy&&phase!=='end'){SFX.tap();arm({});undo()}};
 const pause=ms=>new Promise(r=>{if(STEP){arm({next:r})}else setTimeout(r,ms)});
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 const nx=i=>(i+1)%N;
@@ -544,7 +549,7 @@ async function turnStart(){phase='turn';render();const p=P[cur];
   else{SFX.tap();tip('내 합 '+sum(p.hand)+'. 상대 손패 합은 보통 20점을 넘으니 '+(sum(p.hand)<=5?'스톱이 유리해요.':'조금 더 줄일지, 지금 멈출지 선택. 다른 뻥한 사람도 2장뿐이라 그 사람 합이 더 작을 수 있어요.'));say('스톱할 수 있어요 (합 '+sum(p.hand)+'). 스톱하면 판이 끝나고, 누가 나보다 작으면 +30점.');return arm({stop:()=>endRound('stop',{who:0}),cont:()=>draw()})}}
  return draw()}
 const HIST=[];function snap(){HIST.push(JSON.stringify({P:P.map(p=>({hand:p.hand,meld:p.meld,tot:p.tot})),deck,dis,cur,reshuffled}));if(HIST.length>20)HIST.shift();B.undo.disabled=HIST.length<2}
-function undo(){if(HIST.length<2)return;HIST.pop();const st=JSON.parse(HIST[HIST.length-1]);st.P.forEach((q,i)=>{P[i].hand=q.hand;P[i].meld=q.meld;P[i].tot=q.tot});deck=st.deck;dis=st.dis;cur=st.cur;reshuffled=st.reshuffled;busy=false;sel=null;aiSel=null;HIST.pop();tip('');say('내 지난 차례로 돌아왔어요.');turnDiscard()}
+function undo(){if(!HIST.length)return;if(phase==='discard'&&cur===0&&HIST.length>=2)HIST.pop();const st=JSON.parse(HIST[HIST.length-1]);st.P.forEach((q,i)=>{P[i].hand=q.hand;P[i].meld=q.meld;P[i].tot=q.tot});deck=st.deck;dis=st.dis;cur=st.cur;reshuffled=st.reshuffled;busy=false;sel=null;aiSel=null;HIST.pop();tip('');say('내 지난 차례로 돌아왔어요.');turnDiscard()}
 async function turnDiscard(){phase='discard';render();const p=P[cur];if(!p.ai&&PRAC)snap();
  if(p.ai){const k=aiPick(p);aiSel={i:cur,k};render();say(p.name+' 차례: '+p.hand[k]+'월 '+NM[p.hand[k]]+'을(를) 버리려고 해요.');if(PRAC)tip(p.name+': '+aiWhy(p,p.hand[k]));await pause(900);aiSel=null;return discard(cur,k)}
  tip(discardTip(p));say((p.hand.length===6?'6장 중 ':'')+'버릴 패를 눌러 고른 뒤 버리기.');const h=()=>{if(sel===null){say('먼저 버릴 패를 눌러 고르세요.');arm({discard:h});return}discard(0,sel)};arm({discard:h})}

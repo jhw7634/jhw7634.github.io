@@ -145,7 +145,9 @@ th{font-size:12px;color:var(--muted);font-weight:700}
 /* game */
 .gst .cd.me{cursor:pointer}
 .gst .cd.me:hover{transform:translateY(-6px)}
-.gst .cd.pick{transform:translateY(-10px);outline:3px solid var(--gold)}
+.gst .cd.pick{outline:3px solid var(--gold);box-shadow:0 0 0 4px rgba(240,185,74,.35),0 0 16px rgba(240,185,74,.9);z-index:200!important;animation:pulse .9s ease-in-out infinite alternate}
+@keyframes pulse{from{box-shadow:0 0 0 2px rgba(240,185,74,.3),0 0 8px rgba(240,185,74,.6)}to{box-shadow:0 0 0 6px rgba(240,185,74,.45),0 0 20px rgba(240,185,74,1)}}
+.gst .cd.me.pick{transform:translateY(-10px)}
 .bar{display:flex;gap:8px;flex-wrap:wrap}
 .bar .big{flex:1;min-width:90px;padding:12px 10px;font-size:16px;font-weight:700}
 #gterms button{padding:5px 11px;border-radius:999px;font-size:13px}
@@ -470,7 +472,7 @@ setTimeout(()=>show(0,true),150);
 /* ---------- playable game ---------- */
 (function(){
 const gst=document.getElementById('gst'),gm=document.getElementById('gm'),ghud=document.getElementById('ghud');
-let N=4,ROUNDS=5,STEP=true,PRAC=false,SND=true,P=[],deck=[],dis=[],cur=0,round=0,reshuffled=false,busy=false,sel=null,phase='idle';
+let N=4,ROUNDS=5,STEP=true,PRAC=false,SND=true,aiSel=null,P=[],deck=[],dis=[],cur=0,round=0,reshuffled=false,busy=false,sel=null,phase='idle';
 const NAMES=['나','B','C','D','E'];
 /* sound: tiny synthesized effects, start only after a tap */
 let AC=null;function ac(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){AC=null}}if(AC&&AC.state==='suspended')AC.resume();return AC}
@@ -517,9 +519,9 @@ function render(){gst.innerHTML='';hud();
  P.forEach((p,i)=>{const [x,y]=seat(i),vert=(x<20||x>80);const n=p.hand.length;
   p.hand.forEach((m,k)=>{const e=document.createElement('div');e.className='cd'+(i===0?' me':(PRAC?'':' dn'));e.innerHTML=face(m,null,vi(p.hand,k))+'<div class="bk"></div>';
    const off=(k-(n-1)/2)*(i===0?8:(vert?(PRAC?7:5):(PRAC?(N===5?5:5.5):3.5)));e.style.left=(vert?x:x+off)+'%';e.style.top=(vert?y+off:y)+'%';e.style.zIndex=50+k;
-   if(i===0){if(sel===k)e.classList.add('pick');e.onclick=()=>{if(phase!=='discard'||cur!==0||busy)return;sel=k;render()}}gst.appendChild(e)});
-  p.meld.forEach((m,k)=>{const e=document.createElement('div');e.className='cd';e.innerHTML=face(m,null,k);const mx=i===0?30:(vert?(x<20?x+9:x-9):x),my=i===0?68:(vert?y-16:y+14);e.style.left=(mx+(vert?0:(k-1)*6))+'%';e.style.top=(my+(vert?(k-1)*5:0))+'%';e.style.zIndex=30;e.style.opacity=.92;gst.appendChild(e)});
-  const l=document.createElement('div');l.className='lb'+(i===cur?' turn':'');l.style.left=x+'%';l.style.top=(i===0?95.5:(vert?y-7*(n-1)/2-12.5:y-9.5))+'%';if(vert&&p.meld.length)l.style.top=(y+5.5*(n-1)/2+9)+'%';if(i===0||!vert)l.classList.add('one');
+   if(aiSel&&aiSel.i===i&&aiSel.k===k)e.classList.add('pick');if(i===0){if(sel===k)e.classList.add('pick');e.onclick=()=>{if(phase!=='discard'||cur!==0||busy)return;sel=k;render()}}gst.appendChild(e)});
+  p.meld.forEach((m,k)=>{const e=document.createElement('div');e.className='cd';e.innerHTML=face(m,null,k);const mx=i===0?30:(vert?(x<20?x+9:x-9):x);e.style.left=(mx+(vert?0:(k-1)*6))+'%';e.style.top=i===0?'calc(84% - var(--ch) - 10px)':(vert?'calc('+(y-7*(n-1)/2)+'% - var(--ch) - 48px + '+(k*18)+'px)':'calc('+y+'% + var(--ch) + 6px)');e.style.zIndex=30;e.style.opacity=.92;gst.appendChild(e)});
+  const l=document.createElement('div');l.className='lb'+(i===cur?' turn':'');l.style.left=x+'%';l.style.top=i===0?'calc(84% + var(--ch)/2 + 14px)':(vert?'calc('+(y-7*(n-1)/2)+'% - var(--ch)/2 - 20px)':'calc('+y+'% - var(--ch)/2 - 12px)');if(vert&&p.meld.length)l.style.top='calc('+(y+7*(n-1)/2)+'% + var(--ch)/2 + 20px)';if(i===0||!vert)l.classList.add('one');
   l.innerHTML='<b>'+p.name+(p.meld.length?'<span class="tag">뻥</span>':'')+'</b>'+(i===0?'합 '+sum(p.hand):n+'장')+(vert?'<br>':' · ')+'누적 '+p.tot;l.style.zIndex=120;gst.appendChild(l)});
  for(let k=0;k<Math.min(deck.length,6);k++){const e=document.createElement('div');e.className='cd dn';e.innerHTML='<div class="bk"></div>';e.style.left=(42-k*.3)+'%';e.style.top=(46-k*.3)+'%';e.style.zIndex=10+k;gst.appendChild(e)}
  dis.slice(-5).forEach((m,k,a)=>{const e=document.createElement('div');e.className='cd';e.innerHTML=face(m,null,vi(dis,dis.length-a.length+k));e.style.left=(56+k*4)+'%';e.style.top='46%';e.style.zIndex=20+k;if(k===a.length-1)e.classList.add('hl');gst.appendChild(e)});
@@ -533,7 +535,7 @@ async function turnStart(){phase='turn';render();const p=P[cur];
 const HIST=[];function snap(){HIST.push(JSON.stringify({P:P.map(p=>({hand:p.hand,meld:p.meld,tot:p.tot})),deck,dis,cur,reshuffled}));if(HIST.length>20)HIST.shift();B.undo.disabled=HIST.length<2}
 function undo(){if(HIST.length<2)return;HIST.pop();const st=JSON.parse(HIST[HIST.length-1]);st.P.forEach((q,i)=>{P[i].hand=q.hand;P[i].meld=q.meld;P[i].tot=q.tot});deck=st.deck;dis=st.dis;cur=st.cur;reshuffled=st.reshuffled;busy=false;sel=null;HIST.pop();say('한 차례 전으로 되돌렸어요.');turnDiscard()}
 async function turnDiscard(){phase='discard';render();const p=P[cur];if(!p.ai&&PRAC)snap();
- if(p.ai){say(p.name+' 차례: 버릴 패를 고르는 중…');await pause(650);const k=aiPick(p);if(PRAC)tip(p.name+': '+aiWhy(p,p.hand[k]));return discard(cur,k)}
+ if(p.ai){const k=aiPick(p);aiSel={i:cur,k};render();say(p.name+' 차례: '+p.hand[k]+'월 '+NM[p.hand[k]]+'을(를) 버리려고 해요.');if(PRAC)tip(p.name+': '+aiWhy(p,p.hand[k]));await pause(900);aiSel=null;return discard(cur,k)}
  tip(discardTip(p));say((p.hand.length===6?'6장 중 ':'')+'버릴 패를 눌러 고른 뒤 버리기.');arm({discard:()=>{if(sel===null){say('먼저 버릴 패를 눌러 고르세요.');arm({discard:act.discard});return}discard(0,sel)}})}
 async function draw(){const p=P[cur];
  if(!deck.length){if(reshuffled)return endRound('exhaust');reshuffled=true;deck=dis.splice(0,dis.length-1);shuffle(deck);say('더미가 떨어져 버린 패를 섞어 다시 돌려요.');render();await pause(900)}
@@ -556,7 +558,7 @@ async function discard(i,k,fromPpong){busy=true;arm({});const p=P[i],m=p.hand.sp
  busy=false;cur=nx(i);turnStart()}
 async function ppong(j,m){if(j===0)SFX.ppong();const q=P[j];dis.pop();q.hand.splice(q.hand.indexOf(m),1);q.hand.splice(q.hand.indexOf(m),1);q.meld=[m,m,m];cur=j;render();
  say(q.name+(j===0?'(나)':'')+': 뻥! '+m+'월 3장을 내려놓고 1장 더 버려요.');await pause(900);
- if(q.ai){const k=aiPick(q);if(PRAC)tip(q.name+': '+aiWhy(q,q.hand[k]));return discard(j,k,true)}phase='discard';render();arm({discard:()=>{if(sel===null){say('버릴 패를 눌러 고르세요.');arm({discard:act.discard});return}discard(0,sel,true)}})}
+ if(q.ai){const k=aiPick(q);aiSel={i:j,k};render();say(q.name+': 뻥 후 '+q.hand[k]+'월 '+NM[q.hand[k]]+'을(를) 버리려고 해요.');if(PRAC)tip(q.name+': '+aiWhy(q,q.hand[k]));await pause(900);aiSel=null;return discard(j,k,true)}phase='discard';render();arm({discard:()=>{if(sel===null){say('버릴 패를 눌러 고르세요.');arm({discard:act.discard});return}discard(0,sel,true)}})}
 function endRound(type,d){phase='end';busy=false;arm({});tip('');const r=P.map(p=>sum(p.hand)),note=[];
  if(type==='bak'){r[d.who]+=d.ppong?30:20;r[d.baker]=0;note.push(P[d.who].name+'이(가) '+P[d.baker].name+'에게 '+(d.ppong?'뻥바가지 (+30)':'박 (+20)')+', '+P[d.baker].name+'은(는) 0점')}
  if(type==='stop'){const s=r[d.who];const lower=P.some((p,i)=>i!==d.who&&r[i]<s);if(lower){r[d.who]+=30;note.push(P[d.who].name+' 스톱 → 더 작은 사람이 있어 스톱바가지 +30')}else note.push(P[d.who].name+' 스톱 성공 ('+s+'점)')}

@@ -1,0 +1,577 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style><title>뻥 화투</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="theme-color" content="#171311">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="뻥">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=Nanum+Brush+Script&display=swap">
+<style>
+/* layout: 한 화면 앱. 홈 → 각 화면을 전환, 하단 탭바 고정, 화면 안에서만 스크롤 */
+:root{
+  --bg:#F4F3EF; --panel:#FFFFFF; --ink:#1C1B19; --muted:#6B6963; --line:#E1DFD8;
+  --felt:#2B4737; --felt-ink:#E3ECE3; --red:#D32F2F; --red-soft:#FBE4E2; --gold:#E0A526; --gold-soft:#FFF1CF; --ok:#2E7D4F;
+  --font:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --cw:40px; --ch:58px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#131412;--panel:#1E201D;--ink:#ECEAE4;--muted:#9E9C94;--line:#2F312D;--felt:#1C3326;--felt-ink:#D9E4D9;--red:#EF5350;--red-soft:#3A1E1D;--gold:#F0B94A;--gold-soft:#3A2F14;--ok:#6CC08E;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#131412;--panel:#1E201D;--ink:#ECEAE4;--muted:#9E9C94;--line:#2F312D;--felt:#1C3326;--felt-ink:#D9E4D9;--red:#EF5350;--red-soft:#3A1E1D;--gold:#F0B94A;--gold-soft:#3A2F14;--ok:#6CC08E;color-scheme:dark}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.6;overflow:hidden;-webkit-tap-highlight-color:transparent}
+*{box-sizing:border-box}
+h1,h2,h3,p{margin:0}
+h2{font-size:20px;font-weight:700}
+h3{font-size:15px;font-weight:700}
+.app{height:100%;display:flex;flex-direction:column}
+.screen{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;gap:14px;padding:0 max(16px,env(safe-area-inset-left,0px)) calc(88px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-right,0px))}
+.screen>*{max-width:720px;width:100%;margin-left:auto;margin-right:auto;flex:none}
+.home>.hero{flex:1 1 0;width:auto;max-width:none}
+.topbar{position:sticky;top:0;z-index:550;background:var(--bg);display:flex;align-items:center;gap:6px;padding:10px 0 8px;border-bottom:1px solid var(--line)}
+.topbar button{border:0;background:none;padding:4px 8px 4px 0;font-size:26px;line-height:1;color:var(--ink);cursor:pointer}
+.topbar h2{flex:1}
+.lead{color:var(--muted);font-size:14px}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.ctl{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+button{font:inherit;font-size:14px;font-weight:500;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px 14px;cursor:pointer}
+button:disabled{opacity:.45;cursor:default}
+button.pri{background:var(--red);border-color:var(--red);color:#fff}
+button:focus-visible,a:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.seg{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{border:0;border-radius:0;padding:8px 4px;flex:1;min-width:48px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.seg button[aria-pressed="true"]{background:var(--red);color:#fff}
+select,input{font:inherit;font-size:15px;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-width:0}
+.sub{display:flex;gap:6px;flex-wrap:wrap}
+.sub button{border-radius:999px;padding:6px 14px}
+.sub button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.foot{font-size:13px;color:var(--muted)}
+.err{color:var(--red);font-size:13px}
+ol,ul{margin:0;padding-left:1.25em;display:flex;flex-direction:column;gap:5px;font-size:14px}
+ol li b{color:var(--red)}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:8px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;color:var(--muted);font-weight:700}
+.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* cards */
+.cd{position:absolute;width:var(--cw);height:var(--ch);margin:calc(var(--ch)/-2) 0 0 calc(var(--cw)/-2);border-radius:5px;transition:left .6s cubic-bezier(.3,.8,.3,1),top .6s cubic-bezier(.3,.8,.3,1),opacity .4s,transform .25s;background:#C62828;border:0;overflow:hidden;flex:none;box-shadow:0 1px 3px rgba(0,0,0,.35)}
+.cd img{display:block;width:100%;height:100%;object-fit:cover;pointer-events:none}
+.cd i.n{position:absolute;left:2px;top:2px;font-style:normal;font-size:11px;font-weight:700;color:#fff;background:rgba(0,0,0,.72);border-radius:4px;padding:0 4px;line-height:1.3}
+.cd i.k{position:absolute;right:2px;bottom:2px;font-style:normal;font-size:10px;font-weight:700;line-height:1.3;padding:0 3px;border-radius:3px;background:#FFF4C2;color:#5A3A00}
+.cd i.k.g{background:#FFD24A;color:#4A2B00}.cd i.k.r{background:#C62828;color:#fff}.cd i.k.b{background:#1E4D9B;color:#fff}.cd i.k.gr{background:#2E6B3A;color:#fff}.cd i.k.a{background:#5A3A1E;color:#fff}
+.cd .bk{position:absolute;inset:0;background:#B71C1C;border:3px solid #E57373;border-radius:4px;opacity:0;transition:opacity .3s}
+.cd.dn .bk{opacity:1}
+.cd.hl{outline:2px solid var(--gold);outline-offset:1px}
+.mini{position:relative;margin:0}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+
+/* home: single-dark, lit by the photo */
+.home{--hbg:#171311;--hcard:#272120;--hink:#F3EDE4;--hmuted:#A89E93;background:var(--hbg);color:var(--hink);padding-top:0;overflow:hidden;gap:10px;padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
+.hero{margin:0 calc(-1 * max(16px,env(safe-area-inset-left,0px))) 0 calc(-1 * max(16px,env(safe-area-inset-right,0px)));max-width:none;position:relative;flex:1 1 0;min-height:140px;max-height:380px;overflow:hidden}
+.hero img{width:100%;height:100%;object-fit:cover;object-position:50% 40%;display:block}
+.hero .ttl{position:absolute;left:47%;top:38%;transform:translate(-50%,-50%) rotate(-4deg);font-family:'Nanum Brush Script','Noto Sans KR',cursive;font-size:clamp(90px,34vw,180px);line-height:1;color:#F3E6C8;text-shadow:0 0 18px rgba(255,220,150,.55),0 2px 4px rgba(0,0,0,.6)}
+@media (min-width:720px){.hero .ttl{font-size:200px}}
+.hero::after{content:"";position:absolute;inset:auto 0 0 0;height:90px;background:linear-gradient(transparent,var(--hbg))}
+.start{flex:none;margin-top:-40px;position:relative;z-index:2;display:flex;align-items:center;justify-content:center;gap:12px;background:var(--red);color:#fff;border:0;font-size:20px;font-weight:900;padding:13px 20px;border-radius:999px;box-shadow:0 6px 22px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.35)}
+.start svg{width:28px;height:28px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linejoin:round}
+.tiles{flex:none;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.tiles button{background:var(--hcard);border:0;border-radius:14px;padding:10px 6px 9px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--hink);text-align:center;min-width:0}
+.tiles svg,.tabbar svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linejoin:round;stroke-linecap:round}
+.tiles b{font-size:14px}
+.tiles span{font-size:12px;color:var(--hmuted)}
+.banner{flex:none;display:grid;grid-template-columns:1fr auto;align-items:center;gap:8px;background:linear-gradient(100deg,#8E1C19,#C4302B);border-radius:16px;padding:10px 16px;color:#fff;border:0;text-align:left;overflow:hidden}
+.banner em{font-style:normal;font-size:11px;background:var(--gold);color:#4A2B00;font-weight:700;padding:1px 8px;border-radius:999px;display:inline-block;margin-bottom:4px}
+.banner b{display:block;font-size:18px;line-height:1.2;font-weight:900}
+.banner span{display:block;font-size:12px;margin-top:3px;color:#FFE4B5}
+.fan{position:relative;width:100px;height:66px}
+.fan .cd{--cw:34px;--ch:49px;position:absolute;margin:0;left:0;top:6px;box-shadow:0 3px 8px rgba(0,0,0,.4)}
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:600;display:grid;grid-template-columns:repeat(5,1fr);background:var(--panel);border-top:1px solid var(--line);padding:6px max(10px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(10px,env(safe-area-inset-left,0px))}
+.tabbar button{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;color:var(--muted);border:0;background:none;padding:4px 0;border-radius:0}
+.tabbar button.on{color:var(--red)}
+.tabbar button.on::after{content:"";width:24px;height:3px;border-radius:2px;background:var(--red);margin-top:2px}
+.tabbar svg{width:24px;height:24px}
+@media (max-width:520px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}:root{--cw:34px;--ch:49px}}
+@media (max-height:640px){.tiles{grid-template-columns:repeat(4,minmax(0,1fr))}.tiles span{display:none}.hero{min-height:100px}}
+
+/* stage (motion + game) */
+.st{position:relative;width:100%;height:500px;--cw:40px;--ch:58px;border-radius:16px;background:var(--felt);overflow:hidden}
+.lb{position:absolute;transform:translate(-50%,-50%);font-size:12px;color:var(--felt-ink);white-space:nowrap;transition:opacity .4s;text-align:center;line-height:1.3}
+.lb b{display:block;font-size:13px}
+.lb .tag{display:inline-block;background:var(--gold);color:#3A2600;font-size:10px;font-weight:700;padding:0 6px;border-radius:999px;margin-left:3px}
+.lb.turn b{color:var(--gold)}
+.lb.one b{display:inline;margin-right:6px}
+.bb{position:absolute;transform:translate(-50%,-50%) scale(.6);opacity:0;transition:all .35s cubic-bezier(.3,1.6,.5,1);background:var(--gold-soft);color:var(--ink);border:1px solid var(--gold);font-weight:700;font-size:15px;padding:5px 12px;border-radius:10px;white-space:nowrap;z-index:300}
+.bb.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.st.big{height:clamp(230px,calc(100vh - 345px),700px);height:clamp(230px,calc(100dvh - 345px),700px);--cw:52px;--ch:76px}
+@media (max-width:520px){.st.big{--cw:38px;--ch:55px}}
+#s-motion .lead{font-size:12px}
+#s-motion .cap{min-height:0;gap:1px}
+#s-motion .cap .tt{font-size:16px}
+#s-motion .cap .tx{font-size:13px;line-height:1.45;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+#s-motion{gap:8px}
+.cap{display:flex;flex-direction:column;gap:3px;min-height:96px}
+.cap .sn{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.cap .tt{font-size:18px;font-weight:700}
+.cap .tx{color:var(--muted);font-size:14px}
+.dots{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--line);cursor:pointer;border:0;padding:0}
+.dot.on{background:var(--red)}
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.gi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px}
+.gi .row{gap:4px}.gi .row .cd{--cw:32px;--ch:46px}
+.gi b{font-size:18px;line-height:1}.gi b small{font-size:13px;color:var(--muted);margin-left:6px;font-weight:500}
+.gi span{font-size:12px;color:var(--muted)}
+.legend{display:flex;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.legend i{font-style:normal;padding:1px 7px;border-radius:4px;font-weight:700}
+.pick{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.pick button{padding:4px 0;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px}
+.pick button .cd{--cw:30px;--ch:44px;pointer-events:none}
+.res{border-radius:12px;padding:12px 14px;background:var(--gold-soft);display:flex;flex-direction:column;gap:2px}
+.res b{font-size:17px}
+.names{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px}
+.er{display:grid;grid-template-columns:minmax(0,1fr) 78px minmax(0,1.6fr) 56px;gap:8px;align-items:center}
+.er .pt{font-variant-numeric:tabular-nums;font-weight:700;text-align:right}
+.rank{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}
+.rk{border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.rk.first{border-color:var(--gold);background:var(--gold-soft)}
+.rk small{font-size:12px;color:var(--muted)}
+.rk b{font-size:22px;font-variant-numeric:tabular-nums}
+#board td,#board th{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+#board td:first-child,#board th:first-child{text-align:left}
+#board tfoot td{font-weight:700;border-top:2px solid var(--ink)}
+@media (max-width:520px){.er{grid-template-columns:minmax(0,1fr) 84px 56px}.er select{grid-column:1/-1}}
+
+/* game */
+.gst .cd.me{cursor:pointer}
+.gst .cd.me:hover{transform:translateY(-6px)}
+.gst .cd.pick{transform:translateY(-10px);outline:3px solid var(--gold)}
+.bar{display:flex;gap:8px;flex-wrap:wrap}
+.bar .big{flex:1;min-width:90px;padding:12px 10px;font-size:16px;font-weight:700}
+#gterms button{padding:5px 11px;border-radius:999px;font-size:13px}
+#game{display:flex;flex-direction:column;gap:8px;flex:1 1 auto;min-height:0}
+#game .gst{flex:1 1 auto;min-height:220px;height:auto}
+#game .msg{min-height:0}
+#game .msg .m{font-size:14px;line-height:1.4}
+#game .bar .big{padding:10px 8px;font-size:15px}
+#gterms button{padding:3px 9px;font-size:12px}
+#s-play{padding-bottom:calc(66px + env(safe-area-inset-bottom,0px))}
+.coach{position:absolute;left:17%;right:17%;padding:6px 10px!important;top:25%;bottom:auto;font-size:12px!important;z-index:350;background:rgba(20,16,12,.6);color:#FFF3D6;border:1px solid rgba(240,185,74,.6);border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.45;backdrop-filter:blur(3px);cursor:pointer}
+.coach b{color:var(--gold);margin-right:6px}
+.coach small{display:block;opacity:.7;font-size:11px;margin-top:3px}
+.hud{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.msg{min-height:48px;display:flex;flex-direction:column;gap:6px}
+.msg .m{font-size:15px;font-weight:500}
+.ov{position:absolute;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:400;padding:16px}
+.ov>div{background:var(--panel);color:var(--ink);border-radius:16px;padding:18px;max-width:360px;width:100%;display:flex;flex-direction:column;gap:10px}
+.ov h3{font-size:18px}
+.sc{display:grid;grid-template-columns:1fr auto auto;gap:4px 12px;font-size:14px;font-variant-numeric:tabular-nums}
+.sc b{text-align:right}
+@media (prefers-reduced-motion:reduce){.cd,.bb{transition:none}}
+</style></head><body>
+
+<div class="app">
+
+<!-- HOME -->
+<section id="s-home" class="screen home">
+  <div class="hero"><img src="hero.jpg" alt="뻥 화투 — 오늘도 한 판?"></div>
+  <button class="start" data-go="play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h8a2 2 0 0 1 2 2v10l-3 3H7a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><path d="M14 19v-3h3"/></svg>연습 게임 시작하기 ›</button>
+  <div class="tiles">
+    <button data-go="motion"><svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="7,4 20,12 7,20"/></svg><b>모션 설명서</b><span>5명 한 판 따라가기</span></button>
+    <button data-go="score"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M5 4h14v4a7 7 0 0 1-14 0z"/></svg><b>점수판</b><span>2~5명 실제 판 기록</span></button>
+    <button data-go="calc"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 12h3M13 12h3M8 16h3M13 16h3"/></svg><b>조합 계산기</b><span>내 손패 약 확인</span></button>
+    <button data-go="guide"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h11a2 2 0 0 1 2 2v14H7a2 2 0 0 1-2-2z"/><path d="M5 17a2 2 0 0 1 2-2h11"/></svg><b>게임 방법</b><span>규칙·용어·팁</span></button>
+  </div>
+  <button class="banner" data-go="cards">
+    <div><em>화투 열두 달</em><b>월 숫자가 곧 점수!</b><span>48장 전부 보기 ›</span></div>
+    <div class="fan" id="fan"></div>
+  </button>
+</section>
+
+<!-- PLAY -->
+<section id="s-play" class="screen" hidden>
+  <div class="topbar"><button data-go="home" aria-label="홈으로">‹</button><h2>연습 게임</h2></div>
+  <div class="box" id="setup">
+    <h3>인원 수</h3>
+    <div class="seg" id="gpc"></div>
+    <div class="ctl"><label class="foot" for="grounds">판수</label><select id="grounds"><option value="3">3판</option><option value="5" selected>5판</option><option value="10">10판</option></select></div>
+        <p class="foot">나 + 컴퓨터 상대. 상대 패가 다 보이고, 상대 차례는 다음 ▶ 로 넘기며 왜 그 패를 냈는지 알려 줘요. 매 차례 팁과 뒤로가기도 있어요.</p>
+    <button class="pri" id="gprac">연습 게임 시작</button>
+  </div>
+  <div id="game" hidden>
+    <div class="hud"><span id="ghud"></span><span><button id="gsnd" style="padding:5px 10px;font-size:12px">소리 켬</button> <button id="gquit" style="padding:5px 10px;font-size:12px">그만하기</button></span></div>
+    <div class="st gst" id="gst"></div>
+    <div class="msg"><div class="m" id="gm"></div></div>
+    <div class="bar">
+      <button id="bPpong" class="big" disabled>뻥!</button><button id="bStop" class="big" disabled>스톱!</button><button id="bDiscard" class="big pri" disabled>버리기</button>
+      <button id="bCont" class="big" hidden>계속하기</button><button id="bUndo" class="big" hidden>뒤로가기</button><button id="bNext" class="big pri" hidden>다음 ▶</button>
+    </div>
+    <div class="ctl" id="gterms"></div>
+    <p class="foot" id="gtip" style="font-size:12px">용어를 누르면 뜻이 여기 나와요.</p>
+  </div>
+</section>
+
+<!-- MOTION -->
+<section id="s-motion" class="screen" hidden>
+  <div class="topbar"><button data-go="home" aria-label="홈으로">‹</button><h2>모션 설명서</h2></div>
+  <p class="lead">5명이 한 판 치는 장면. 진행은 나 → B → C → D → E 순서.<br>아래로 내리면 게임 방법 요약과 화투 열두 달이 있어요.</p>
+  <div class="st big" id="st" role="img" aria-label="5인 뻥 진행 애니메이션"></div>
+  <div class="cap" aria-live="polite"><span class="sn" id="sn"></span><span class="tt" id="tt"></span><p class="tx" id="tx"></p></div>
+  <div class="ctl"><button id="pv">이전</button><button id="nx" class="pri">다음</button><div class="dots" id="dots"></div></div>
+  <div class="box">
+    <h3>한눈에 보는 게임 방법</h3>
+    <ol>
+      <li><b>나누기</b> — 한 사람 5장, 선은 6장. 나머지는 더미.</li>
+      <li><b>한 차례</b> — 더미에서 1장 가져오고, 필요 없는 1장 버리기.</li>
+      <li><b>뻥</b> — 누가 버린 패와 같은 월 2장이 있으면 "뻥!" 3장 내려놓고 1장 더 버림. 손에 2장.</li>
+      <li><b>스톱</b> — 뻥 후 2장 합이 10 이하, 다른 뻥한 사람이 있을 때 내 차례에 선언. 나보다 작은 사람 있으면 +30.</li>
+      <li><b>박</b> — 뻥한 사람의 2장과 같은 월을 버리면 박. 버린 사람 +20, 씌운 사람 0점.</li>
+      <li><b>특수 약</b> — 6장이 10부족(−100), 마이너스(연속 6개 월), 또이또이(0점)면 바로 끝.</li>
+      <li><b>점수</b> — 손패 월 숫자 합이 점수. 판수가 끝났을 때 누적 합이 적은 사람이 1등.</li>
+    </ol>
+  </div>
+  <div class="ctl"><button data-go="guide">규칙 자세히</button><button class="pri" data-go="play">연습 게임 해보기</button></div>
+  <h3>화투 열두 달</h3>
+  <p class="foot">월 숫자가 곧 점수. 광·띠·피 구분은 어느 달인지 알아보는 힌트예요.</p>
+  <div class="gal" id="gal2"></div>
+</section>
+
+<!-- CARDS -->
+<section id="s-cards" class="screen" hidden>
+  <div class="topbar"><button data-go="home" aria-label="홈으로">‹</button><h2>화투 열두 달</h2></div>
+  <p class="lead">월마다 4장, 모두 48장. 뻥에서는 월(숫자)만 보면 되고, 광·띠·피 구분은 어느 달인지 알아보는 힌트예요.</p>
+  <div class="legend"><i style="background:#FFD24A;color:#4A2B00">광</i><i style="background:#C62828;color:#fff">홍단</i><i style="background:#1E4D9B;color:#fff">청단</i><i style="background:#2E6B3A;color:#fff">초단</i><i style="background:#5A3A1E;color:#fff">열끗</i><i style="background:#FFF4C2;color:#5A3A00">피</i></div>
+  <div class="gal" id="gal"></div>
+</section>
+
+<!-- SCORE -->
+<section id="s-score" class="screen" hidden>
+  <div class="topbar"><button data-go="home" aria-label="홈으로">‹</button><h2>점수판</h2></div>
+  <p class="lead">실제로 화투를 칠 때 쓰는 기록장. 판마다 손패 합과 특이사항을 넣으면 누적과 순위가 나와요. 기록은 이 기기에만 남습니다.</p>
+  <div class="box">
+    <div class="ctl" style="gap:8px"><span class="foot">인원</span><div class="seg" id="pcount" style="flex:1;min-width:200px"></div></div>
+    <div class="ctl" style="gap:8px"><label class="foot" for="rounds">판수</label><select id="rounds"><option value="10">10판</option><option value="20">20판</option><option value="0">제한 없음</option></select></div>
+    <div class="names" id="names"></div>
+  </div>
+  <div class="box">
+    <h3 id="rtitle">1판 입력</h3>
+    <div id="entry" style="display:flex;flex-direction:column;gap:8px"></div>
+    <p class="err" id="err" hidden></p>
+    <div class="ctl"><button class="pri" id="save">이 판 기록</button><button id="undoR">마지막 판 취소</button><button id="reset">새 게임</button><button id="again">다시하기</button></div>
+    <div class="res" id="confirm" hidden><b>기록을 모두 지우고 새로 시작할까요?</b><div class="ctl"><button class="pri" id="yes">지우기</button><button id="no">취소</button></div></div>
+  </div>
+  <div class="box"><h3>순위</h3><div id="rank" class="rank"></div><div class="tbl"><table id="board"></table></div></div>
+</section>
+
+<!-- CALC -->
+<section id="s-calc" class="screen" hidden>
+  <div class="topbar"><button data-go="home" aria-label="홈으로">‹</button><h2>조합 계산기</h2></div>
+  <p class="lead">패를 눌러 손패를 만들어 보세요. 6장이면 특수 약, 2장이면 스톱·박 가능 여부, 그 밖에는 점수를 알려 줘요.</p>
+  <div class="box">
+    <div class="pick" id="pick"></div>
+    <div class="row" id="hand" style="min-height:52px"></div>
+    <div class="res" id="res"></div>
+    <div class="ctl"><button id="undo">한 장 빼기</button><button id="clr">비우기</button><button id="ex1">예: 10부족</button><button id="ex2">예: 마이너스</button><button id="ex3">예: 또이또이</button></div>
+  </div>
+  <h3>판을 끝내는 6장 조합</h3>
+  <div class="box"><h3>10부족 · −100점</h3><p class="foot">6장 합이 10 이하. 가능한 조합은 다섯 가지뿐.</p><div id="c10" style="display:flex;flex-direction:column;gap:8px"></div></div>
+  <div class="box"><h3>마이너스 · 합만큼 빼기</h3><p class="foot">연속된 6개 월. 7~12월이면 57점을 뺍니다.</p><div id="cmi" style="display:flex;flex-direction:column;gap:8px"></div></div>
+  <div class="box"><h3>또이또이 · 0점</h3><p class="foot">같은 월끼리만 짝을 이룬 6장.</p><div id="cdd" style="display:flex;flex-direction:column;gap:8px"></div></div>
+</section>
+
+<!-- GUIDE -->
+<section id="s-guide" class="screen" hidden>
+  <div class="topbar"><button data-go="home" aria-label="홈으로">‹</button><h2>게임 방법</h2></div>
+  <div class="sub" id="gsub"><button aria-pressed="true" data-g="rules">규칙</button><button data-g="terms">용어</button><button data-g="tips">초보 팁</button><button data-go="motion">▶ 모션으로 보기</button></div>
+  <div id="g-rules" style="display:flex;flex-direction:column;gap:10px">
+    <div class="box"><h3>준비</h3><ol><li>판수(10판, 20판 등)와 서기를 정합니다.</li><li>한 사람당 5장, 선은 6장을 받습니다.</li><li>남은 패는 가운데 더미로 엎어 둡니다.</li><li>첫 판 이후에는 직전 판 합이 가장 작은 사람이 선.</li></ol></div>
+    <div class="box"><h3>한 차례</h3><ol><li>더미 맨 위 패를 1장 가져옵니다.</li><li>필요 없는 패 1장을 앞면으로 버립니다.</li><li>손에는 늘 5장. 더미가 떨어지면 버린 패를 섞어 다시 돌릴 수 있습니다.</li></ol></div>
+    <div class="box"><h3>뻥</h3><ul><li>누가 버린 패와 같은 월을 2장 들고 있으면 순서와 상관없이 "뻥!"</li><li>3장을 내려놓고 1장 더 버려 손에 2장만 남깁니다.</li><li>뻥한 사람의 다음 사람부터 다시 진행. 뻥은 의무가 아닙니다.</li></ul></div>
+    <div class="box"><h3>스톱</h3><ul><li>뻥 후 2장 합이 10 이하면 내 차례에 선언.</li><li>나 말고도 뻥한 사람이 1명 이상 있어야 합니다.</li><li>나보다 합이 작은 사람이 있으면 스톱바가지 +30.</li></ul></div>
+    <div class="box"><h3>박(바가지)</h3><ul><li>뻥 후 남은 2장이 같은 월일 때, 누가 그 월을 버리면 박.</li><li>버린 사람은 손패 합 +20, 씌운 사람은 0점.</li><li>뻥하면서 버린 패가 바로 박이면 뻥바가지 +30(선택).</li></ul></div>
+    <div class="box"><h3>특수 약 (6장)</h3><ul><li>10부족: 합 10 이하 → −100</li><li>마이너스: 연속 6개 월 → 합만큼 빼기</li><li>또이또이: 같은 월 짝만 → 0점</li></ul><div class="ctl"><button data-go="calc">조합 계산기에서 확인</button></div></div>
+    <div class="box"><h3>점수표</h3><div class="tbl"><table><tbody>
+      <tr><td>일반</td><td class="num">손패 월 숫자 합</td></tr><tr><td>박을 씌움</td><td class="num">0</td></tr><tr><td>박을 씀</td><td class="num">합 + 20</td></tr><tr><td>스톱바가지, 뻥바가지</td><td class="num">합 + 30</td></tr><tr><td>또이또이</td><td class="num">0</td></tr><tr><td>마이너스</td><td class="num">−21 ~ −57</td></tr><tr><td>10부족</td><td class="num">−100</td></tr>
+    </tbody></table></div></div>
+  </div>
+  <div id="g-terms" hidden><div class="tbl box"><table><tbody>
+    <tr><th>선</th><td>먼저 시작하는 사람. 6장을 받습니다.</td></tr><tr><th>더미</th><td>가운데 엎어 둔 남은 패.</td></tr><tr><th>서기</th><td>판마다 점수를 적는 사람.</td></tr><tr><th>뻥</th><td>버려진 패와 내 같은 월 2장을 함께 내려놓기.</td></tr><tr><th>스톱</th><td>손패 합이 작을 때 판을 끝내는 선언.</td></tr><tr><th>박, 바가지</th><td>뻥한 사람이 든 같은 월을 버려 벌점을 받는 것.</td></tr><tr><th>마이너스</th><td>6장이 연속된 월. 합만큼 점수에서 뺍니다.</td></tr><tr><th>10부족</th><td>6장 합이 10 이하. −100점.</td></tr><tr><th>또이또이</th><td>같은 월끼리 짝을 이룬 6장. 0점.</td></tr><tr><th>자연뻥</th><td>처음부터 같은 월 3장을 모은 상태(선택 규칙).</td></tr>
+  </tbody></table></div></div>
+  <div id="g-tips" hidden><div class="box"><ul>
+    <li>10·11·12월 같은 큰 숫자는 일찍 버려 손패 합을 낮게 유지하세요.</li>
+    <li>누가 뻥을 했다면, 버리기 전에 바닥을 보고 그 사람이 들고 있을 만한 월은 피하세요.</li>
+    <li>스톱은 내 합이 확실히 가장 작을 때만. 스톱바가지 +30은 큽니다.</li>
+    <li>같은 월 2장은 뻥과 박 양쪽에 쓰이니 쉽게 버리지 마세요.</li>
+    <li>1·2·3월이 모이면 10부족을, 연속된 월이 4~5장이면 마이너스를 노려 볼 만합니다.</li>
+  </ul><p class="foot">하우스룰은 모임마다 다릅니다. 시작 전에 스톱 한도, 뻥바가지, 자연뻥, 더미 재사용 횟수를 함께 정하세요.</p></div></div>
+</section>
+
+<nav class="tabbar" aria-label="메뉴">
+  <button data-go="home" class="on"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>홈</button>
+  <button data-go="play"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="18" height="11" rx="4"/><path d="M8 11v3M6.5 12.5h3M15 11.5h.01M17.5 13.5h.01"/></svg>연습게임</button>
+  <button data-go="motion"><svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="7,4 20,12 7,20"/></svg>설명서</button>
+  <button data-go="score"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M5 4h14v4a7 7 0 0 1-14 0z"/></svg>점수판</button>
+  <button data-go="guide"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h11a2 2 0 0 1 2 2v14H7a2 2 0 0 1-2-2z"/><path d="M5 17a2 2 0 0 1 2-2h11"/></svg>게임 방법</button>
+</nav>
+</div>
+
+<script>
+/* ---------- card art ---------- */
+const NM={1:'송학',2:'매조',3:'벚꽃',4:'흑싸리',5:'난초',6:'모란',7:'홍싸리',8:'공산',9:'국진',10:'단풍',11:'오동',12:'비'};
+const KIND={1:['광','홍단','피','피'],2:['열끗','홍단','피','피'],3:['광','홍단','피','피'],4:['열끗','초단','피','피'],5:['열끗','초단','피','피'],6:['열끗','청단','피','피'],7:['열끗','초단','피','피'],8:['광','열끗','피','피'],9:['열끗','청단','피','피'],10:['열끗','청단','피','피'],11:['광','열끗','띠','피'],12:['광','열끗','홍단','쌍피']};
+const KC={'광':'g','홍단':'r','청단':'b','초단':'gr','열끗':'a','띠':'r','피':'','쌍피':''};
+const vi=(arr,i)=>arr.slice(0,i).filter(x=>x===arr[i]).length%4;
+const face=(m,k,v)=>{if(typeof k==='number'){v=k;k=null}if(v===undefined)v=k?KIND[m].indexOf(k):0;return '<img src="cards/'+m+'-'+(v+1)+'.jpg" alt="" draggable="false"><i class="n">'+m+'</i>'+(k?'<i class="k '+KC[k]+'">'+k+'</i>':'')};
+const card=(m,k,v)=>'<div class="cd mini" title="'+m+'월 '+NM[m]+(typeof k==='string'?' '+k:'')+'">'+face(m,k,v)+'</div>';
+
+/* ---------- navigation ---------- */
+const SCR=['home','play','motion','cards','score','calc','guide'];
+function go(id){if(!SCR.includes(id))id='home';SCR.forEach(s=>document.getElementById('s-'+s).hidden=s!==id);
+ document.querySelectorAll('.tabbar button').forEach(b=>b.classList.toggle('on',b.dataset.go===id));
+ document.getElementById('s-'+id).scrollTop=0;try{history.replaceState(null,'','#'+id)}catch(e){}}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(b){go(b.dataset.go)}});
+document.getElementById('gsub').addEventListener('click',e=>{const b=e.target.closest('[data-g]');if(!b)return;document.querySelectorAll('#gsub [data-g]').forEach(x=>x.setAttribute('aria-pressed',x===b));['rules','terms','tips'].forEach(g=>document.getElementById('g-'+g).hidden=g!==b.dataset.g)});
+
+/* home fan */
+const fan=document.getElementById('fan');[[3,-14],[6,0],[8,14]].forEach((p,i)=>{fan.insertAdjacentHTML('beforeend',card(p[0],null,i));const e=fan.lastElementChild;e.style.left=(i*26)+'px';e.style.transform='rotate('+p[1]+'deg)'});
+
+/* ---------- 12 months gallery ---------- */
+for(let k=1;k<=12;k++)['gal','gal2'].forEach(g=>{document.getElementById(g).insertAdjacentHTML('beforeend','<div class="gi"><b>'+k+'<small>'+k+'월 '+NM[k]+'</small></b><div class="row">'+KIND[k].map((t,v)=>card(k,t,v)).join('')+'</div><span>'+KIND[k].join(' · ')+'</span></div>')})
+
+/* ---------- combos ---------- */
+const rowHtml=(a,lbl)=>'<div class="row">'+a.map((m,i)=>card(m,null,vi(a,i))).join('')+'<span class="foot" style="margin-left:6px">'+lbl+'</span></div>';
+[[1,1,1,1,2,2],[1,1,1,1,2,3],[1,1,1,1,3,3],[1,1,1,2,2,2],[1,1,1,2,2,3]].forEach(a=>document.getElementById('c10').insertAdjacentHTML('beforeend',rowHtml(a,'합 '+a.reduce((s,x)=>s+x,0))));
+[1,2,3,4,5,7].forEach(s=>{const a=[0,1,2,3,4,5].map(i=>s+i);document.getElementById('cmi').insertAdjacentHTML('beforeend',rowHtml(a,'−'+a.reduce((x,y)=>x+y,0)))});
+[[[3,3,7,7,11,11],'2·2·2장'],[[5,5,5,9,9,9],'3·3장'],[[2,2,2,2,12,12],'4·2장']].forEach(p=>document.getElementById('cdd').insertAdjacentHTML('beforeend',rowHtml(p[0],p[1])));
+
+/* ---------- special-hand judge (shared) ---------- */
+const sum=h=>h.reduce((a,b)=>a+b,0);
+function special(h){if(h.length!==6)return null;const so=h.slice().sort((a,b)=>a-b),s=sum(so);
+ if(s<=10)return{k:'10부족',pts:-100};
+ if(new Set(so).size===6&&so[5]-so[0]===5)return{k:'마이너스',pts:-s};
+ const cnt={};so.forEach(x=>cnt[x]=(cnt[x]||0)+1);const v=Object.values(cnt).sort().join(',');
+ if(['2,2,2','3,3','2,4'].includes(v))return{k:'또이또이',pts:0};return null}
+
+/* ---------- calculator ---------- */
+let hand=[];const pick=document.getElementById('pick'),handEl=document.getElementById('hand'),res=document.getElementById('res');
+for(let k=1;k<=12;k++){const b=document.createElement('button');b.id='pk'+k;b.innerHTML=card(k)+NM[k];b.setAttribute('aria-label',k+'월 '+NM[k]+' 추가');b.onclick=()=>{if(hand.length>=6){res.innerHTML='<b>손패는 최대 6장까지예요.</b>';return}if(hand.filter(x=>x===k).length>=4){res.innerHTML='<b>'+k+'월은 4장까지만 있어요.</b>';return}hand.push(k);calc()};pick.appendChild(b)}
+function judge(h){const n=h.length,s=sum(h);
+ if(!n)return['패를 눌러 손패를 만들어 보세요','최대 6장, 같은 월은 4장까지'];
+ if(n===6){const sp=special(h);if(sp)return[sp.k+'! '+sp.pts+'점',sp.k==='10부족'?'6장 합 '+s+' (10 이하)':sp.k==='마이너스'?'연속된 6개 월':'같은 월끼리 짝을 이룸'];return['약 없음 · 합 '+s+'점','6장으로는 10부족·마이너스·또이또이만 판을 끝낼 수 있어요']}
+ if(n===2){const pair=h[0]===h[1];return['합 '+s+'점'+(s<=10?' · 스톱 가능':''),(s<=10?'뻥한 사람이 나 말고도 있어야 스톱할 수 있어요. ':'합이 커서 스톱은 어려워요. ')+(pair?h[0]+'월을 누가 버리면 박!':'같은 월 2장이면 박을 노릴 수 있어요.')]}
+ return['합 '+s+'점','판이 끝날 때 이 숫자가 그대로 점수가 돼요']}
+function calc(){handEl.innerHTML=hand.map((m,i)=>card(m,null,vi(hand,i))).join('');const j=judge(hand);res.innerHTML='<b>'+j[0]+'</b><span class="foot">'+j[1]+'</span>'}
+document.getElementById('undo').onclick=()=>{hand.pop();calc()};document.getElementById('clr').onclick=()=>{hand=[];calc()};
+document.getElementById('ex1').onclick=()=>{hand=[1,1,1,2,2,3];calc()};document.getElementById('ex2').onclick=()=>{hand=[7,8,9,10,11,12];calc()};document.getElementById('ex3').onclick=()=>{hand=[3,3,7,7,11,11];calc()};calc();
+
+/* ---------- score keeper ---------- */
+const OPTS=[{k:'n',t:'일반 (손패 합)',f:s=>s,need:1},{k:'stop',t:'스톱 성공',f:s=>s,need:1},{k:'bakon',t:'박 씌움 → 0',f:()=>0},{k:'bak',t:'박 씀 → 합 +20',f:s=>s+20,need:1},{k:'sb',t:'스톱바가지 → 합 +30',f:s=>s+30,need:1},{k:'pb',t:'뻥바가지 → 합 +30',f:s=>s+30,need:1},{k:'dd',t:'또이또이 → 0',f:()=>0},{k:'t10',t:'10부족 → −100',f:()=>-100},{k:'mi',t:'마이너스 → −(6장 합)',f:s=>-s,need:1,mi:1}];
+const DEF={n:4,rounds:10,names:['나','B','C','D','E'],log:[]};
+let G;try{G=JSON.parse(localStorage.getItem('ppong-score'))||null}catch(e){G=null}
+if(!G||!Array.isArray(G.log))G=JSON.parse(JSON.stringify(DEF));
+const sv=()=>{try{localStorage.setItem('ppong-score',JSON.stringify(G))}catch(e){}};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const pc=document.getElementById('pcount');
+[2,3,4,5].forEach(n=>{const b=document.createElement('button');b.id='pc'+n;b.textContent=n+'명';b.onclick=()=>{if(G.log.length&&n!==G.n){showErr('기록 중에는 인원을 바꿀 수 없어요. 새 게임을 눌러 주세요.');return}G.n=n;sv();renderScore()};pc.appendChild(b)});
+const rsel=document.getElementById('rounds');rsel.onchange=()=>{G.rounds=+rsel.value;sv();renderScore()};
+function showErr(t){const e=document.getElementById('err');e.textContent=t;e.hidden=!t}
+function renderNames(){const w=document.getElementById('names');w.innerHTML='';for(let i=0;i<G.n;i++){const inp=document.createElement('input');inp.id='nm'+i;inp.value=G.names[i];inp.maxLength=8;inp.setAttribute('aria-label',(i+1)+'번 이름');inp.oninput=()=>{G.names[i]=inp.value||String.fromCharCode(65+i);sv();renderBoard();renderEntryLabels()};w.appendChild(inp)}}
+function renderEntry(){const w=document.getElementById('entry');w.innerHTML='';for(let i=0;i<G.n;i++){const r=document.createElement('div');r.className='er';
+ r.innerHTML='<span id="el'+i+'"></span><input id="sum'+i+'" inputmode="numeric" placeholder="합" aria-label="손패 합"><select id="op'+i+'" aria-label="특이사항">'+OPTS.map((o,j)=>'<option value="'+j+'">'+o.t+'</option>').join('')+'</select><span class="pt" id="pt'+i+'">–</span>';
+ w.appendChild(r);r.querySelector('input').oninput=()=>{showErr('');prev(i)};r.querySelector('select').onchange=()=>{showErr('');prev(i)}}renderEntryLabels()}
+function renderEntryLabels(){for(let i=0;i<G.n;i++){const e=document.getElementById('el'+i);if(e)e.textContent=G.names[i]}}
+function val(i){const o=OPTS[+document.getElementById('op'+i).value],inp=document.getElementById('sum'+i),raw=inp.value.trim();inp.disabled=!o.need;if(!o.need)return{ok:1,v:o.f(0)};
+ if(raw==='')return{ok:0,why:'손패 합을 입력해 주세요'};const s=Number(raw);if(!Number.isInteger(s)||s<0||s>72)return{ok:0,why:'손패 합은 0~72 사이 숫자예요'};
+ if(o.mi&&![21,27,33,39,45,57].includes(s))return{ok:0,why:'마이너스 합은 21, 27, 33, 39, 45, 57 중 하나예요'};return{ok:1,v:o.f(s)}}
+function prev(i){const r=val(i);document.getElementById('pt'+i).textContent=r.ok?r.v:'–'}
+function renderBoard(){const n=G.n,t=document.getElementById('board');const tot=Array(n).fill(0);G.log.forEach(r=>r.forEach((v,i)=>tot[i]+=v));
+ let h='<thead><tr><th>판</th>'+G.names.slice(0,n).map(x=>'<th>'+esc(x)+'</th>').join('')+'</tr></thead><tbody>';
+ G.log.forEach((r,k)=>h+='<tr><td>'+(k+1)+'판</td>'+r.map(v=>'<td>'+v+'</td>').join('')+'</tr>');
+ if(!G.log.length)h+='<tr><td colspan="'+(n+1)+'" class="foot" style="text-align:left">첫 판을 기록하면 여기에 쌓여요.</td></tr>';
+ h+='</tbody><tfoot><tr><td>합계</td>'+tot.map(v=>'<td>'+v+'</td>').join('')+'</tr></tfoot>';t.innerHTML=h;
+ const rk=document.getElementById('rank');if(!G.log.length){rk.innerHTML='<p class="foot">기록하면 누적 점수가 적은 순서로 순위가 나와요.</p>';return}
+ const order=tot.map((v,i)=>({v,i})).sort((a,b)=>a.v-b.v);let place=0,last=null;
+ rk.innerHTML=order.map((o,k)=>{if(o.v!==last){place=k+1;last=o.v}return '<div class="rk'+(place===1?' first':'')+'"><small>'+place+'등</small><span>'+esc(G.names[o.i])+'</span><b>'+o.v+'</b></div>'}).join('')}
+function renderScore(){document.querySelectorAll('#pcount button').forEach(b=>b.setAttribute('aria-pressed',b.id==='pc'+G.n));rsel.value=String(G.rounds);renderNames();renderEntry();renderBoard();
+ const k=G.log.length+1,done=G.rounds&&G.log.length>=G.rounds;document.getElementById('rtitle').textContent=done?G.rounds+'판 끝! 최종 순위를 확인하세요':k+'판 입력'+(G.rounds?' / '+G.rounds+'판':'');
+ document.getElementById('save').disabled=!!done;for(let i=0;i<G.n;i++)prev(i)}
+document.getElementById('save').onclick=()=>{const row=[];for(let i=0;i<G.n;i++){const r=val(i);if(!r.ok){showErr(G.names[i]+': '+r.why);document.getElementById('sum'+i).focus();return}row.push(r.v)}G.log.push(row);sv();showErr('');renderScore()};
+document.getElementById('undoR').onclick=()=>{if(!G.log.length){showErr('취소할 기록이 없어요.');return}G.log.pop();sv();renderScore()};
+const cf=document.getElementById('confirm');document.getElementById('reset').onclick=()=>{cf.hidden=false};document.getElementById('no').onclick=()=>{cf.hidden=true};document.getElementById('yes').onclick=()=>{G.log=[];sv();cf.hidden=true;showErr('');renderScore()};
+document.getElementById('again').onclick=()=>{G=JSON.parse(JSON.stringify(DEF));sv();cf.hidden=true;showErr('');renderScore();document.getElementById('s-score').scrollTop=0};
+renderScore();
+
+/* ---------- motion explainer ---------- */
+(function(){
+const st=document.getElementById('st');let C={},u=0;
+function mk(m,v){const id='c'+u++;const e=document.createElement('div');e.className='cd dn';e.title=m+'월 '+NM[m];e.innerHTML=face(m,null,v||0)+'<div class="bk"></div>';e.style.left='42%';e.style.top='46%';e.style.opacity=0;st.appendChild(e);C[id]={m,e};return id}
+const H={me:[9,7,7,1,1,5],b:[4,8,3,10,6],c:[2,10,1,6,8],d:[3,4,9,5,2],e:[12,12,11,4,6]};
+const hands={};for(const k in H)hands[k]=H[k].map((m,i)=>mk(m,vi(H[k],i)));
+const DM=[11,7,12,5,10,3,8,2,9,6,11];const D=DM.map((m,i)=>mk(m,(vi(DM,i)+2)%4));
+const EX=[[1,2,3,4,5,6],[1,1,1,2,2,3],[3,3,7,7,11,11]].map(r=>r.map((m,i)=>mk(m,vi(r,i))));
+function lab(x,y){const e=document.createElement('div');e.className='lb';e.style.left=x+'%';e.style.top=y+'%';st.appendChild(e);return e}
+const NMS={me:'나 (선)',b:'B',c:'C',d:'D',e:'E'};
+const PL={me:lab(50,98),b:lab(93,34),c:lab(72,25),d:lab(28,25),e:lab(7,34)};
+const DL=lab(42,60),XL=lab(62,60);DL.textContent='더미';XL.textContent='버린 패';
+const EL=[lab(64,22),lab(64,48),lab(64,74)];
+const bub=document.createElement('div');bub.className='bb';st.appendChild(bub);
+const cp=o=>JSON.parse(JSON.stringify(o));
+let m={h:cp(hands),deck:D.slice(),dis:[],meld:{me:[],e:[]},hl:[],bub:null,rev:false,ex:false,sc:null};
+const S=[];const P=(t,x)=>S.push({t,x,m:cp(m)});const top=()=>m.dis[m.dis.length-1];let d,x;
+P('패 나누기 (5명)','한 사람당 5장, 선은 6장을 받아요. 진행은 나 → B → C → D → E, 남은 패는 가운데 더미로.');
+m.dis.push(m.h.me.shift());m.hl=[top()];m.bub=['me','9월 국진 버림'];
+P('선이 1장 버리기','선은 6장 중 쓸모없는 1장을 버리며 판을 엽니다. 이제 모두 5장씩.');
+d=m.deck.shift();m.h.b.push(d);m.hl=[d];m.bub=['b','더미에서 1장'];
+P('B: 1장 가져오기','B는 더미 맨 위 패(11월 오동)를 가져와요.');
+x=m.h.b.splice(2,1)[0];m.dis.push(x);m.hl=[x];m.bub=['b','3월 버림'];
+P('B: 1장 버리기','필요 없는 3월 벚꽃을 버려 다시 5장. 가져오고 버리기가 한 차례예요.');
+d=m.deck.shift();m.dis.push(d);m.hl=[d,m.h.me[0],m.h.me[1]];m.bub=['c','7월 버림'];
+P('C: 가져와서 바로 버림','C가 7월 홍싸리를 가져왔지만 필요 없어 그대로 버렸어요. 그런데 내 손에 7월이 2장 있어요.');
+m.dis.pop();m.meld.me=[d,m.h.me.shift(),m.h.me.shift()];m.dis.push(m.h.me.pop());m.hl=m.meld.me.slice();m.bub=['me','뻥!'];
+P('나: 뻥!','순서와 상관없이 "뻥"을 외치고 7월 3장을 내려놓은 뒤 5월 난초를 더 버려요. 손에는 1월 2장만 남고, 내 다음인 B부터 다시 진행.');
+d=m.deck.shift();m.dis.push(d);m.hl=[d,m.h.e[0],m.h.e[1]];m.bub=['b','12월 버림'];
+P('B: 12월 비를 버림','B가 더미에서 12월 비를 가져와 버렸어요. E의 손에 12월이 2장 있네요.');
+m.dis.pop();m.meld.e=[d,m.h.e.shift(),m.h.e.shift()];x=m.h.e.shift();m.dis.push(x);m.hl=m.meld.e.slice();m.bub=['e','뻥!'];
+P('E: 뻥!','E도 뻥. 12월 3장을 내려놓고 11월 오동을 버려 손에 4월·6월 2장. 이제 뻥한 사람이 2명입니다.');
+m.hl=m.h.me.slice();m.bub=['me','합 2 · 스톱 가능'];
+P('스톱할 수 있는 조건','내 손패 1+1 = 2. 2장 합이 10 이하이고 나 말고도 뻥한 사람(E)이 있으니 내 차례에 스톱할 수 있어요. 나보다 합이 작은 사람이 있으면 스톱바가지 +30점.');
+x=m.h.c.splice(2,1)[0];m.dis.push(x);m.hl=[x].concat(m.h.me);m.bub=['c','박! +20점'];
+P('박(바가지)','스톱 대신 계속했는데, 몇 차례 뒤 C가 1월 송학을 버렸어요. 나는 1월 2장을 들고 뻥한 상태라 박. C는 손패 합 +20점, 나는 0점으로 판이 끝나요.');
+m.hl=[];m.bub=null;m.ex=true;
+P('특수 약 (6장으로 완성)','자기 차례에 가져온 1장까지 6장이 이런 모양이면 바로 판을 끝낼 수 있어요.');
+m.ex=false;m.rev=true;m.sc={me:'0점',b:'39점',c:'26+20=46점',d:'23점',e:'10점'};
+P('점수 계산','각자 손패 월 숫자를 더해요. 이 판은 나 0 · E 10 · D 23 · B 39 · C 46. 정한 판수가 끝났을 때 누적 합이 가장 적은 사람이 1등.');
+function pos(s){const p={};const sp=(a,f)=>a.forEach((id,i)=>p[id]=f(i,a.length));const o=(i,n,g)=>(i-(n-1)/2)*g;
+sp(s.h.me,(i,n)=>({x:50+o(i,n,7.5),y:86,up:1,z:50+i}));sp(s.h.b,(i,n)=>({x:93,y:60+o(i,n,8),up:1,z:50+i}));
+sp(s.h.c,(i,n)=>({x:72+o(i,n,6),y:12,up:1,z:50+i}));sp(s.h.d,(i,n)=>({x:28+o(i,n,6),y:12,up:1,z:50+i}));
+sp(s.h.e,(i,n)=>({x:7,y:60+o(i,n,8),up:1,z:50+i}));sp(s.deck,(i)=>({x:42-i*.2,y:46-i*.2,up:0,z:30-i}));
+sp(s.dis,(i)=>({x:58+i*1.5,y:46+(i%2),up:1,z:40+i}));sp(s.meld.me,(i)=>({x:44+i*6,y:68,up:1,z:60+i}));sp(s.meld.e,(i)=>({x:17+i*4,y:84,up:1,z:60+i}));return p}
+const BP={me:[50,74],b:[78,46],c:[70,27],d:[30,27],e:[24,66]};let cur=-1;
+function show(k,deal){cur=k;const s=S[k].m,p=pos(s);
+Object.keys(C).forEach((id,j)=>{const e=C[id].e,q=p[id];e.style.transitionDelay=deal?(j*35)+'ms':'0ms';e.style.transitionDuration=SPD>5000?'1.2s':'.6s';
+let ex=-1;EX.forEach((r,ri)=>{const ci=r.indexOf(id);if(ci>=0)ex=[ri,ci]});
+if(ex!==-1){if(s.ex){e.style.left=(10+ex[1]*8.5)+'%';e.style.top=(22+ex[0]*26)+'%';e.style.opacity=1;e.style.zIndex=100;e.classList.remove('dn');e.style.transitionDelay=(ex[0]*300+ex[1]*60)+'ms'}else{e.style.left='42%';e.style.top='46%';e.style.opacity=0;e.classList.add('dn')}e.classList.remove('hl');return}
+if(!q){e.style.opacity=0;return}
+e.style.left=q.x+'%';e.style.top=q.y+'%';e.style.zIndex=q.z||20;e.style.opacity=s.ex?.08:1;e.classList.toggle('dn',!q.up);e.classList.toggle('hl',s.hl.includes(id))});
+const ET=['마이너스 · 1~6월 → −21','10부족 · 합 10 이하 → −100','또이또이 · 짝 세 쌍 → 0'];
+EL.forEach((e,i)=>{e.textContent=ET[i];e.style.opacity=s.ex?1:0;e.style.transform='translate(0,-50%)';e.style.whiteSpace='normal';e.style.maxWidth='34%'});
+[DL,XL].forEach(e=>e.style.opacity=s.ex?0:1);
+Object.keys(PL).forEach(w=>{PL[w].style.opacity=s.ex?.15:1;PL[w].textContent=NMS[w]+(s.sc?' · '+s.sc[w]:'')});
+bub.classList.remove('on');if(s.bub){const b=BP[s.bub[0]];setTimeout(()=>{bub.textContent=s.bub[1];bub.style.left=b[0]+'%';bub.style.top=b[1]+'%';bub.classList.add('on')},450)}
+document.getElementById('sn').textContent=(k+1)+' / '+S.length;document.getElementById('tt').textContent=S[k].t;document.getElementById('tx').textContent=S[k].x;
+document.querySelectorAll('#dots .dot').forEach((d,i)=>d.classList.toggle('on',i===k))}
+const dots=document.getElementById('dots');S.forEach((_,i)=>{const d=document.createElement('button');d.className='dot';d.setAttribute('aria-label',(i+1)+'단계');d.onclick=()=>{stop();show(i)};dots.appendChild(d)});
+let tm=null;function stop(){}
+document.getElementById('nx').onclick=()=>{stop();show(Math.min(cur+1,S.length-1))};document.getElementById('pv').onclick=()=>{stop();show(Math.max(cur-1,0))};
+const SPD=6500;
+setTimeout(()=>show(0,true),150);
+})();
+
+/* ---------- playable game ---------- */
+(function(){
+const gst=document.getElementById('gst'),gm=document.getElementById('gm'),ghud=document.getElementById('ghud');
+let N=4,ROUNDS=5,STEP=true,PRAC=false,SND=true,P=[],deck=[],dis=[],cur=0,round=0,reshuffled=false,busy=false,sel=null,phase='idle';
+const NAMES=['나','B','C','D','E'];
+/* sound: tiny synthesized effects, start only after a tap */
+let AC=null;function ac(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){AC=null}}if(AC&&AC.state==='suspended')AC.resume();return AC}
+function tone(f,t,d,type,vol){const c=ac();if(!c||!SND)return;const o=c.createOscillator(),g=c.createGain();o.type=type||'sine';o.frequency.setValueAtTime(f,c.currentTime+t);g.gain.setValueAtTime(0,c.currentTime+t);g.gain.linearRampToValueAtTime(vol||.18,c.currentTime+t+.01);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+t+d);o.connect(g).connect(c.destination);o.start(c.currentTime+t);o.stop(c.currentTime+t+d+.02)}
+function noise(t,d){const c=ac();if(!c||!SND)return;const n=c.sampleRate*d,b=c.createBuffer(1,n,c.sampleRate),x=b.getChannelData(0);for(let i=0;i<n;i++)x[i]=(Math.random()*2-1)*(1-i/n);const sN=c.createBufferSource();sN.buffer=b;const g=c.createGain();g.gain.value=.12;const f=c.createBiquadFilter();f.type='bandpass';f.frequency.value=1800;sN.connect(f).connect(g).connect(c.destination);sN.start(c.currentTime+t)}
+const SFX={flip:()=>{noise(0,.08);tone(900,0,.05,'triangle',.08)},draw:()=>{noise(0,.06)},ppong:()=>{tone(523,0,.12,'square',.12);tone(784,.1,.18,'square',.12)},bak:()=>{tone(220,0,.25,'sawtooth',.14);tone(160,.18,.35,'sawtooth',.14)},stop:()=>{tone(660,0,.1,'triangle');tone(660,.12,.1,'triangle');tone(880,.26,.25,'triangle')},win:()=>[523,659,784,1047].forEach((f,i)=>tone(f,i*.11,.22,'triangle',.14)),lose:()=>[440,370,311].forEach((f,i)=>tone(f,i*.16,.22,'triangle',.12)),tap:()=>tone(1200,0,.04,'sine',.06)};
+document.getElementById('gsnd').onclick=e=>{SND=!SND;e.target.textContent=SND?'소리 켬':'소리 끔';if(SND)SFX.tap()};
+document.getElementById('s-play').addEventListener('click',()=>ac(),{once:true});
+/* practice coach */
+const coach=document.createElement('div');coach.className='coach';let coachText='';coach.onclick=()=>{coachText='';coach.remove()};
+function tip(t){coachText=PRAC?(t||''):'';placeCoach()}
+function placeCoach(){if(coachText){coach.innerHTML='<b>팁</b>'+esc(coachText)+'<small>누르면 닫혀요</small>';gst.appendChild(coach)}else coach.remove()}
+function discardTip(p){const cnt={};p.hand.forEach(m=>cnt[m]=(cnt[m]||0)+1);const un=p.hand.filter(m=>cnt[m]===1);const hi=un.length?Math.max(...un):Math.max(...p.hand);
+ const pairs=Object.keys(cnt).filter(m=>cnt[m]>=2).map(Number);let t='';
+ if(p.meld.length){t='뻥을 했으니 남은 2장 합이 10 이하가 되면 스톱 기회. '+(pairs.length?'같은 월 2장을 들고 있어 누가 '+pairs[0]+'월을 버리면 박을 씌울 수 있어요. ':'')}
+ else{t=hi+'월('+NM[hi]+')이 가장 큰 짝 없는 패라 버리기 좋아요. '+(pairs.length?pairs.join('·')+'월은 2장씩 있으니 뻥·박용으로 남겨 두세요. ':'')}
+ const melders=P.filter(q=>q!==p&&q.meld.length);if(melders.length)t+=melders.map(q=>q.name).join('·')+'이(가) 뻥한 상태라 박 위험이 있어요. 바닥에 아직 안 나온 월은 조심.';
+ const s=p.hand.slice().sort((a,b)=>a-b);if(!p.meld.length&&s.length>=5&&s[0]<=2&&s[2]<=2)t+=' 작은 패가 모여 있어 10부족을 노려볼 만해요.';
+ return t}
+
+const seg=document.getElementById('gpc');[2,3,4,5].forEach(n=>{const b=document.createElement('button');b.id='gpc'+n;b.textContent=n+'명';b.setAttribute('aria-pressed',n===N);b.onclick=()=>{N=n;seg.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b))};seg.appendChild(b)});
+function begin(prac){PRAC=prac;ROUNDS=+document.getElementById('grounds').value;P=[];for(let i=0;i<N;i++)P.push({name:NAMES[i],ai:i>0,hand:[],meld:[],tot:0});round=0;HIST.length=0;document.getElementById('setup').hidden=true;document.getElementById('game').hidden=false;document.getElementById('gtip').textContent='용어를 누르면 뜻이 여기 나와요.';startRound()}
+document.getElementById('gprac').onclick=()=>begin(true);
+document.getElementById('gquit').onclick=()=>{document.getElementById('setup').hidden=false;document.getElementById('game').hidden=true;gst.innerHTML='';act={}};
+/* action bar */
+const B={ppong:document.getElementById('bPpong'),stop:document.getElementById('bStop'),discard:document.getElementById('bDiscard'),cont:document.getElementById('bCont'),next:document.getElementById('bNext'),undo:document.getElementById('bUndo')};
+let act={};
+function arm(o){act=o||{};Object.keys(B).forEach(k=>{if(k!=='undo')B[k].disabled=!act[k]});B.cont.hidden=!act.cont;B.next.hidden=!act.next;B.undo.hidden=!PRAC;B.undo.disabled=HIST.length<2||busy}
+Object.keys(B).forEach(k=>{if(k==='undo')return;B[k].onclick=()=>{const f=act[k];if(f){SFX.tap();arm({});f()}}});B.undo.onclick=()=>{if(phase==='discard'&&cur===0&&!busy){SFX.tap();undo()}};
+const pause=ms=>new Promise(r=>{if(STEP){arm({next:r})}else setTimeout(r,ms)});
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+const nx=i=>(i+1)%N;
+/* term chips */
+const TERMS={'뻥':'누가 버린 패와 같은 월 2장이 있으면 순서와 상관없이 뻥! 3장을 내려놓고 1장 더 버려요.','스톱':'뻥 후 남은 2장 합이 10 이하이고 다른 뻥한 사람이 있으면 내 차례에 선언. 나보다 작은 사람이 있으면 +30점.','박':'뻥한 사람이 든 2장과 같은 월을 버리면 박. 버린 사람 +20점, 씌운 사람 0점.','10부족':'6장 합이 10 이하면 바로 끝. −100점.','마이너스':'6장이 연속된 월이면 바로 끝. 합만큼 점수에서 빼요.','또이또이':'6장이 같은 월끼리 짝이면 바로 끝. 0점.'};
+const tw=document.getElementById('gterms');Object.keys(TERMS).forEach(k=>{const b=document.createElement('button');b.textContent=k;b.onclick=()=>{document.getElementById('gtip').textContent=k+' — '+TERMS[k]};tw.appendChild(b)});
+function startRound(){round++;HIST.length=0;deck=[];for(let m=1;m<=12;m++)for(let k=0;k<4;k++)deck.push(m);shuffle(deck);
+ dis=[];reshuffled=false;sel=null;const dealer=(round-1)%N;P.forEach((p,i)=>{p.hand=deck.splice(0,i===dealer?6:5);p.meld=[];p.hand.sort((a,b)=>a-b)});cur=dealer;
+ say(P[cur].name+(cur===0?'(나)':'')+'이(가) 선. 6장 중 1장을 버리며 시작해요.');render();turnDiscard()}
+function shuffle(d){for(let i=d.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]]}}
+function say(t){gm.textContent=t}
+function hud(){ghud.textContent=round+' / '+ROUNDS+'판 · 더미 '+deck.length+'장'}
+function seat(i){const others={2:[[50,17]],3:[[24,17],[76,17]],4:[[8,44],[50,17],[92,44]],5:[[8,46],[27,17],[73,17],[92,46]]}[N];return i===0?[50,84]:others[i-1]}
+function render(){gst.innerHTML='';hud();
+ P.forEach((p,i)=>{const [x,y]=seat(i),vert=(x<20||x>80);const n=p.hand.length;
+  p.hand.forEach((m,k)=>{const e=document.createElement('div');e.className='cd'+(i===0?' me':(PRAC?'':' dn'));e.innerHTML=face(m,null,vi(p.hand,k))+'<div class="bk"></div>';
+   const off=(k-(n-1)/2)*(i===0?8:(vert?(PRAC?7:5):(PRAC?5.5:3.5)));e.style.left=(vert?x:x+off)+'%';e.style.top=(vert?y+off:y)+'%';e.style.zIndex=50+k;
+   if(i===0){if(sel===k)e.classList.add('pick');e.onclick=()=>{if(phase!=='discard'||cur!==0||busy)return;sel=k;render()}}gst.appendChild(e)});
+  p.meld.forEach((m,k)=>{const e=document.createElement('div');e.className='cd';e.innerHTML=face(m,null,k);const mx=i===0?30:(vert?(x<20?x+9:x-9):x),my=i===0?68:(vert?y-16:y+14);e.style.left=(mx+(vert?0:(k-1)*6))+'%';e.style.top=(my+(vert?(k-1)*5:0))+'%';e.style.zIndex=30;e.style.opacity=.92;gst.appendChild(e)});
+  const l=document.createElement('div');l.className='lb'+(i===cur?' turn':'');l.style.left=x+'%';l.style.top=(i===0?95.5:(vert?y-9.5*(n-1)/2-9:y-11.5))+'%';if(vert&&p.meld.length)l.style.top=(y+5.5*(n-1)/2+9)+'%';if(i===0)l.classList.add('one');
+  l.innerHTML='<b>'+p.name+(p.meld.length?'<span class="tag">뻥</span>':'')+'</b>'+(i===0?'합 '+sum(p.hand):n+'장')+(vert?'<br>':' · ')+'누적 '+p.tot;gst.appendChild(l)});
+ for(let k=0;k<Math.min(deck.length,6);k++){const e=document.createElement('div');e.className='cd dn';e.innerHTML='<div class="bk"></div>';e.style.left=(42-k*.3)+'%';e.style.top=(46-k*.3)+'%';e.style.zIndex=10+k;gst.appendChild(e)}
+ dis.slice(-5).forEach((m,k,a)=>{const e=document.createElement('div');e.className='cd';e.innerHTML=face(m,null,vi(dis,dis.length-a.length+k));e.style.left=(56+k*4)+'%';e.style.top='46%';e.style.zIndex=20+k;if(k===a.length-1)e.classList.add('hl');gst.appendChild(e)});
+ const dl=document.createElement('div');dl.className='lb';dl.style.left='42%';dl.style.top='59%';dl.textContent='더미 '+deck.length;gst.appendChild(dl);
+ const xl=document.createElement('div');xl.className='lb';xl.style.left='64%';xl.style.top='59%';xl.textContent='버린 패';gst.appendChild(xl);placeCoach()}
+function canStop(p){return p.meld.length&&p.hand.length===2&&sum(p.hand)<=10&&P.some(q=>q!==p&&q.meld.length)}
+async function turnStart(){phase='turn';render();const p=P[cur];
+ if(canStop(p)){if(p.ai){if(sum(p.hand)<=6||Math.random()<.4){SFX.stop();say(p.name+': 스톱!');if(PRAC)tip(p.name+': 남은 2장 합이 '+sum(p.hand)+'으로 작아서 스톱.');await pause(800);return endRound('stop',{who:cur})}}
+  else{SFX.tap();tip('내 합 '+sum(p.hand)+'. 상대 손패 합은 보통 20점을 넘으니 '+(sum(p.hand)<=5?'스톱이 유리해요.':'조금 더 줄일지, 지금 멈출지 선택. 다른 뻥한 사람도 2장뿐이라 그 사람 합이 더 작을 수 있어요.'));say('스톱할 수 있어요 (합 '+sum(p.hand)+'). 스톱하면 판이 끝나고, 누가 나보다 작으면 +30점.');return arm({stop:()=>endRound('stop',{who:0}),cont:()=>draw()})}}
+ return draw()}
+const HIST=[];function snap(){HIST.push(JSON.stringify({P:P.map(p=>({hand:p.hand,meld:p.meld,tot:p.tot})),deck,dis,cur,reshuffled}));if(HIST.length>20)HIST.shift();B.undo.disabled=HIST.length<2}
+function undo(){if(HIST.length<2)return;HIST.pop();const st=JSON.parse(HIST[HIST.length-1]);st.P.forEach((q,i)=>{P[i].hand=q.hand;P[i].meld=q.meld;P[i].tot=q.tot});deck=st.deck;dis=st.dis;cur=st.cur;reshuffled=st.reshuffled;busy=false;sel=null;HIST.pop();say('한 차례 전으로 되돌렸어요.');turnDiscard()}
+async function turnDiscard(){phase='discard';render();const p=P[cur];if(!p.ai&&PRAC)snap();
+ if(p.ai){say(p.name+' 차례: 버릴 패를 고르는 중…');await pause(650);const k=aiPick(p);if(PRAC)tip(p.name+': '+aiWhy(p,p.hand[k]));return discard(cur,k)}
+ tip(discardTip(p));say((p.hand.length===6?'6장 중 ':'')+'버릴 패를 눌러 고른 뒤 버리기.');arm({discard:()=>{if(sel===null){say('먼저 버릴 패를 눌러 고르세요.');arm({discard:act.discard});return}discard(0,sel)}})}
+async function draw(){const p=P[cur];
+ if(!deck.length){if(reshuffled)return endRound('exhaust');reshuffled=true;deck=dis.splice(0,dis.length-1);shuffle(deck);say('더미가 떨어져 버린 패를 섞어 다시 돌려요.');render();await pause(900)}
+ const c=deck.shift();p.hand.push(c);p.hand.sort((a,b)=>a-b);SFX.draw();
+ if(!p.meld.length){const sp=special(p.hand);if(sp){render();say(p.name+': '+sp.k+'!');await pause(800);return endRound('special',{who:cur,sp})}}
+ say(p.name+(cur===0?'(나)':'')+' 차례: '+(cur===0?c+'월 '+NM[c]+'을(를) 가져왔어요.':'더미에서 1장 가져옴.'));
+ if(cur!==0)render();turnDiscard()}
+function aiPick(p){const cnt={};p.hand.forEach(m=>cnt[m]=(cnt[m]||0)+1);let best=0,bs=-1e9;
+ p.hand.forEach((m,k)=>{let s=m+(cnt[m]>=2?-20:0)+Math.random();if(s>bs){bs=s;best=k}});return best}
+function aiWhy(p,m){const cnt={};p.hand.forEach(x=>cnt[x]=(cnt[x]||0)+1);const pairs=Object.keys(cnt).filter(x=>cnt[x]>=2).map(Number);const un=p.hand.filter(x=>cnt[x]===1);
+ if(p.meld.length)return '뻥을 해서 2장만 남기려고 큰 '+m+'월을 버림';
+ let w=(un.length&&m>=Math.max(...un))?'짝 없는 패 중 가장 큰 '+m+'월을 버려 합을 줄임':'짝 없는 '+m+'월을 버림';if(pairs.length)w+='. '+pairs.join('·')+'월은 2장씩이라 뻥·박용으로 남김';return w}
+async function discard(i,k,fromPpong){busy=true;arm({});const p=P[i],m=p.hand.splice(k,1)[0];dis.push(m);sel=null;if(!p.ai)tip('');SFX.flip();render();say(p.name+(i===0?'(나)':'')+': '+m+'월 '+NM[m]+' 버림');await pause(700);
+ const baker=P.findIndex(q=>q!==p&&q.meld.length&&q.hand.length===2&&q.hand[0]===m&&q.hand[1]===m);
+ if(baker>=0){busy=false;SFX.bak();say(P[baker].name+': 박!');render();await pause(800);return endRound('bak',{who:i,baker,ppong:!!fromPpong})}
+ for(let s=1;s<N;s++){const j=(i+s)%N,q=P[j];if(q.meld.length)continue;if(q.hand.filter(x=>x===m).length>=2){
+  if(q.ai){busy=false;SFX.ppong();say(q.name+': 뻥!');if(PRAC)tip(q.name+': '+m+'월 2장을 들고 있어서 뻥. 3장을 내려놓고 손에 2장만 남겨 스톱·박을 노려요.');await pause(500);return ppong(j,m)}
+  busy=false;phase='ppong';render();tip('뻥하면 3장을 내려놓고 손에 2장만 남아 스톱·박을 노릴 수 있어요. 10부족 같은 큰 약을 노리는 게 아니면 뻥이 유리해요.');say(m+'월 '+NM[m]+'이(가) 버려졌어요. 나한테 같은 월 2장이 있어요. 뻥?');
+  return arm({ppong:()=>ppong(0,m),cont:()=>{cur=nx(i);turnStart()}})}}
+ busy=false;cur=nx(i);turnStart()}
+async function ppong(j,m){if(j===0)SFX.ppong();const q=P[j];dis.pop();q.hand.splice(q.hand.indexOf(m),1);q.hand.splice(q.hand.indexOf(m),1);q.meld=[m,m,m];cur=j;render();
+ say(q.name+(j===0?'(나)':'')+': 뻥! '+m+'월 3장을 내려놓고 1장 더 버려요.');await pause(900);
+ if(q.ai){const k=aiPick(q);if(PRAC)tip(q.name+': '+aiWhy(q,q.hand[k]));return discard(j,k,true)}phase='discard';render();arm({discard:()=>{if(sel===null){say('버릴 패를 눌러 고르세요.');arm({discard:act.discard});return}discard(0,sel,true)}})}
+function endRound(type,d){phase='end';busy=false;arm({});tip('');const r=P.map(p=>sum(p.hand)),note=[];
+ if(type==='bak'){r[d.who]+=d.ppong?30:20;r[d.baker]=0;note.push(P[d.who].name+'이(가) '+P[d.baker].name+'에게 '+(d.ppong?'뻥바가지 (+30)':'박 (+20)')+', '+P[d.baker].name+'은(는) 0점')}
+ if(type==='stop'){const s=r[d.who];const lower=P.some((p,i)=>i!==d.who&&r[i]<s);if(lower){r[d.who]+=30;note.push(P[d.who].name+' 스톱 → 더 작은 사람이 있어 스톱바가지 +30')}else note.push(P[d.who].name+' 스톱 성공 ('+s+'점)')}
+ if(type==='special'){r[d.who]=d.sp.pts;note.push(P[d.who].name+': '+d.sp.k+'! '+d.sp.pts+'점')}
+ if(type==='exhaust')note.push('더미를 두 번 다 써서 손패 합으로 계산');
+ const best=Math.min(...r);SFX[r[0]===best?'win':'lose']();P.forEach((p,i)=>p.tot+=r[i]);render();gst.querySelectorAll('.cd.dn').forEach(e=>e.classList.remove('dn'));
+ const fin=round>=ROUNDS;const order=P.map((p,i)=>({t:p.tot,i})).sort((a,b)=>a.t-b.t);
+ const ov=document.createElement('div');ov.className='ov';ov.innerHTML='<div><h3>'+(fin?'최종 결과':round+'판 결과')+'</h3><p class="foot">'+esc(note.join(' · '))+'</p><div class="sc"><span></span><b>이번 판</b><b>누적</b>'+P.map((p,i)=>'<span>'+esc(p.name)+(i===0?' (나)':'')+'</span><b>'+r[i]+'</b><b>'+p.tot+'</b>').join('')+'</div>'+(fin?'<p><b>'+esc(P[order[0].i].name)+'</b> 1등! (누적 '+order[0].t+'점)</p>':'')+'<div class="ctl"><button class="pri" id="gnext">'+(fin?'새 게임':'다음 판')+'</button><button id="gview">판 보기</button></div></div>';
+ gst.appendChild(ov);const again=()=>{if(fin){document.getElementById('setup').hidden=false;document.getElementById('game').hidden=true;gst.innerHTML=''}else startRound()};
+ ov.querySelector('#gnext').onclick=again;ov.querySelector('#gview').onclick=()=>{ov.remove();arm({next:again});B.next.textContent=fin?'새 게임':'다음 판'};
+ say(note.join(' · '))}
+})();
+
+/* boot */
+go((location.hash||'#home').slice(1));
+</script>
+<script>
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{})}
+</script></body></html>

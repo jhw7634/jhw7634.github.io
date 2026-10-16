@@ -151,6 +151,7 @@ th{font-size:12px;color:var(--muted);font-weight:700}
 #board td,#board th{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 #board td:first-child,#board th:first-child{text-align:left}
 #board tfoot td{font-weight:700;border-top:2px solid var(--ink)}
+#board tfoot tr.rkrow td{border-top:0;color:var(--red);font-size:13px}
 @media (max-width:520px){.er{grid-template-columns:minmax(0,.8fr) 56px minmax(0,1.3fr) 40px}}
 
 /* game */
@@ -407,10 +408,12 @@ function renderBoard(){const n=G.n,t=document.getElementById('board');const tot=
  let h='<thead><tr><th>판</th>'+G.names.slice(0,n).map(x=>'<th>'+esc(x)+'</th>').join('')+'</tr></thead><tbody>';
  G.log.forEach((r,k)=>h+='<tr><td>'+(k+1)+'판</td>'+r.map(v=>'<td>'+v+'</td>').join('')+'</tr>');
  
- h+='</tbody><tfoot><tr><td>합계</td>'+tot.map(v=>'<td>'+v+'</td>').join('')+'</tr></tfoot>';t.innerHTML=h;t.parentElement.style.maxHeight='34vh';t.parentElement.style.overflowY='auto';
- const rk=document.getElementById('rank');if(!G.log.length){rk.innerHTML='';return}
- const order=tot.map((v,i)=>({v,i})).sort((a,b)=>a.v-b.v);let place=0,last=null;
- rk.innerHTML=order.map((o,k)=>{if(o.v!==last){place=k+1;last=o.v}return '<div class="rk'+(place===1?' first':'')+'"><small>'+place+'등</small><span>'+esc(G.names[o.i])+'</span><b>'+o.v+'</b></div>'}).join('')}
+ const order=tot.map((v,i)=>({v,i})).sort((a,b)=>a.v-b.v);const rankOf=Array(n);let place=0,last=null;order.forEach((o,k)=>{if(o.v!==last){place=k+1;last=o.v}rankOf[o.i]=place});
+ h+='</tbody><tfoot><tr><td>합계</td>'+tot.map(v=>'<td>'+v+'</td>').join('')+'</tr><tr class="rkrow"><td>등수</td>'+rankOf.map(r=>'<td>'+(G.log.length?r+'등':'–')+'</td>').join('')+'</tr></tfoot>';t.innerHTML=h;t.parentElement.style.maxHeight='30vh';t.parentElement.style.overflowY='auto';
+ const rk=document.getElementById('rank');
+ if(!G.log.length){rk.innerHTML='<p class="foot">첫 판을 기록하면 누적 점수가 적은 순서로 등수가 나와요.</p>';return}
+ const medal=['🥇','🥈','🥉'];
+ rk.innerHTML=order.map(o=>{const r=rankOf[o.i];return '<div class="rk'+(r===1?' first':'')+'"><small>'+(medal[r-1]||'')+' '+r+'등</small><span>'+esc(G.names[o.i])+'</span><b>'+o.v+'<small style="font-size:11px;margin-left:3px">점</small></b></div>'}).join('')+'<p class="foot" style="grid-column:1/-1;margin:0">점수가 적을수록 높은 등수. 같은 점수는 같은 등수.</p>'}
 function renderScore(){document.querySelectorAll('#pcount button').forEach(b=>b.setAttribute('aria-pressed',b.id==='pc'+G.n));rsel.value=String(G.rounds);renderNames();renderEntry();renderBoard();
  const k=G.log.length+1,done=G.rounds&&G.log.length>=G.rounds;document.getElementById('rtitle').textContent=done?G.rounds+'판 끝! 최종 순위를 확인하세요':k+'판 입력'+(G.rounds?' / '+G.rounds+'판':'');
  document.getElementById('save').disabled=!!done;for(let i=0;i<G.n;i++)prev(i)}

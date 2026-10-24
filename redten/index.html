@@ -1,0 +1,673 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style><title>홍스 Red Ten</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="theme-color" content="#0f2a20">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="홍스">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
+<style>
+/* layout: 한 화면 앱. 홈 → 각 화면 전환, 하단 탭바 고정, 화면 안에서만 스크롤. 펠트 테이블(A안) 단일 다크 테마 */
+:root{
+  --bg:#0f2a20; --deep:#0b211a; --panel:#173a2d; --line:#23503e; --ink:#f4efe2; --mute:#9fbfae;
+  --gold:#e8c46a; --gold-d:#a88634; --red:#c8202f; --red-l:#ff7a84; --paper:#fbf8f0; --card-ink:#1b1a17; --rail:#3a2617;
+  --font:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --cw:46px; --ch:66px;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.6;-webkit-tap-highlight-color:transparent;overflow:hidden}
+button{font-family:inherit;color:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+#app{height:100%;max-width:560px;margin:0 auto;display:grid;grid-template-rows:minmax(0,1fr) auto}
+.scr{min-height:0;overflow-y:auto;overflow-x:hidden;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:14px 24px;display:flex;flex-direction:column;gap:14px}
+.scr.fit{overflow:hidden;padding-block:10px 10px}
+
+/* top bar */
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:44px}
+.brand{display:flex;align-items:baseline;gap:8px}
+.brand b{font-weight:900;font-size:22px;letter-spacing:-.5px}
+.brand span{font-size:12px;font-weight:500;letter-spacing:2px;color:var(--mute)}
+.pill{display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 14px;border-radius:19px;border:1px solid #3f6b58;background:transparent;font-size:13px;font-weight:500}
+.back{display:inline-flex;align-items:center;gap:4px;height:40px;padding:0 10px 0 4px;border:0;background:transparent;font-size:15px;font-weight:700;color:var(--ink)}
+.ttl{font-weight:900;font-size:20px;margin:0;letter-spacing:-.4px}
+.subhead{display:flex;align-items:center;gap:6px}
+
+/* home */
+.hero{border-radius:28px;background:radial-gradient(120% 90% at 50% 35%,#1f6148 0%,#164433 55%,#0c241b 100%);border:8px solid var(--rail);min-height:300px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:20px 12px}
+.fan{display:flex;align-items:flex-end;height:150px}
+.big{width:96px;height:136px;border-radius:10px;background:var(--paper);color:var(--red);box-shadow:0 10px 24px rgba(0,0,0,.45);display:flex;flex-direction:column;justify-content:space-between;padding:8px 10px;font-weight:900}
+.big b{font-size:22px;line-height:1}.big b i{display:block;font-style:normal;font-size:18px}
+.big em{font-style:normal;font-size:44px;align-self:center;line-height:1;margin-bottom:18px}
+.big.l{transform:rotate(-12deg) translateX(14px);animation:fanL .9s cubic-bezier(.2,.8,.2,1) both}
+.big.rr{transform:rotate(10deg) translateX(-14px) translateY(-6px);animation:fanR .9s cubic-bezier(.2,.8,.2,1) .08s both}
+@keyframes fanL{from{transform:rotate(0) translateX(48px)}}
+@keyframes fanR{from{transform:rotate(0) translateX(-48px)}}
+.hero h1{margin:0;font-weight:900;font-size:30px;letter-spacing:-1px;line-height:1.2;text-align:center;text-wrap:balance}
+.hero p{margin:2px 0 0;font-size:14px;color:#cfe0d6;text-align:center}
+.cta{width:100%;min-height:58px;border-radius:16px;border:0;background:var(--gold);color:#1d1608;font-size:18px;font-weight:900;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 4px 0 var(--gold-d)}
+.cta:active{transform:translateY(2px);box-shadow:0 2px 0 var(--gold-d)}
+.tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.tile{border:0;text-align:left;background:var(--panel);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:6px;min-height:84px}
+.tile b{font-size:15px}.tile small{font-size:12px;color:var(--mute);line-height:1.3}
+.ico{width:24px;height:24px;fill:none;stroke:var(--gold);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* tab bar */
+.tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:6px max(8px,env(safe-area-inset-left,0px)) 8px max(8px,env(safe-area-inset-right,0px));border-top:1px solid var(--line);background:var(--deep)}
+.tabs button{border:0;background:transparent;color:var(--mute);display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;font-weight:500;padding:6px 0;min-height:48px}
+.tabs button svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.tabs button[aria-current="page"]{color:var(--gold);font-weight:700}
+
+/* cards */
+.cd{width:var(--cw);height:var(--ch);border-radius:7px;background:var(--paper);color:var(--card-ink);display:inline-flex;flex-direction:column;align-items:flex-start;padding:4px 5px;font-weight:900;line-height:1;box-shadow:0 2px 0 rgba(0,0,0,.35);flex:none;position:relative;user-select:none;-webkit-user-select:none}
+.cd b{font-size:calc(var(--cw)*.36);letter-spacing:-1px}
+.cd i{font-style:normal;font-size:calc(var(--cw)*.3)}
+.cd em{position:absolute;right:4px;bottom:3px;font-style:normal;font-size:calc(var(--cw)*.5)}
+.cd.r{color:var(--red)}
+.cd.bk{background:repeating-linear-gradient(45deg,#7d1a24 0 5px,#a62532 5px 10px);border:3px solid var(--paper)}
+.cd.sm{--cw:34px;--ch:48px}
+.cd.xs{--cw:22px;--ch:31px;border-radius:4px;border-width:2px}
+.cd.glow{outline:3px solid var(--gold);outline-offset:2px}
+
+/* play: setup */
+.panel{background:var(--panel);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.panel h3{margin:0;font-size:15px}
+.opt{display:flex;flex-direction:column;gap:6px}
+.opt label,.lbl{font-size:13px;color:var(--mute)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid #3f6b58;background:transparent;border-radius:999px;padding:0 14px;min-height:40px;font-size:14px;font-weight:500}
+.chip[aria-pressed="true"]{background:var(--gold);color:#1d1608;border-color:var(--gold);font-weight:700}
+.btn{border:0;border-radius:14px;min-height:48px;padding:0 16px;font-size:15px;font-weight:700;background:var(--panel);color:var(--ink)}
+.btn.pri{background:var(--gold);color:#1d1608}
+.btn.red{background:var(--red);color:#fff}
+.btn:disabled{opacity:.4;cursor:default}
+.foot{font-size:12.5px;color:var(--mute);margin:0}
+
+/* play: table */
+.table{flex:1;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr);gap:6px;border-radius:24px;background:radial-gradient(120% 90% at 50% 40%,#1f6148 0%,#164433 60%,#0c241b 100%);border:6px solid var(--rail);padding:8px}
+.north{display:flex;justify-content:center}
+.mid{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:6px;align-items:center;min-height:0}
+.seat{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:74px;padding:6px 4px;border-radius:14px;border:2px solid transparent}
+.seat.turn{border-color:var(--gold);background:rgba(232,196,106,.08)}
+.who{display:flex;align-items:center;gap:4px;font-weight:700;font-size:14px}
+.badge{font-size:10.5px;font-weight:700;padding:1px 6px;border-radius:6px;background:#2c5a47;color:var(--mute)}
+.badge.R{background:var(--red);color:#fff}.badge.B{background:#121a17;color:#e6ece8;border:1px solid #4a6a5c}
+.cnt{display:flex;align-items:center;gap:4px;font-size:13px;font-variant-numeric:tabular-nums;color:#dfeae3}
+.bub{font-size:12px;min-height:18px;color:var(--gold);text-align:center;line-height:1.3;max-width:90px}
+.bub.out{color:#fff;background:var(--red);border-radius:6px;padding:0 6px}
+.center{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-width:0;min-height:120px;text-align:center}
+.trick{display:flex;flex-wrap:wrap;justify-content:center;gap:3px}
+.trick .cd{animation:land .35s cubic-bezier(.2,.8,.2,1) both}
+@keyframes land{from{transform:translateY(24px) scale(.9);opacity:.3}}
+.by{font-size:12.5px;color:var(--mute)}
+.msg{font-size:13px;color:#e5efe9;min-height:20px;line-height:1.35}
+.mebar{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13.5px;flex-wrap:wrap}
+.mebar .who{font-size:15px}
+.status{font-size:14px;line-height:1.45;min-height:42px;background:var(--panel);border-radius:12px;padding:8px 12px}
+.status b{color:var(--gold)}
+.tip{display:block;font-size:12.5px;color:var(--mute);margin-top:2px}
+.hand{display:flex;padding-top:16px;min-height:calc(var(--ch) + 18px);overflow:visible}
+.hand .cd{transition:transform .15s ease;cursor:pointer}
+.hand .cd.sel{transform:translateY(-14px);outline:3px solid var(--gold);outline-offset:1px}
+.acts{display:grid;grid-template-columns:1fr 1fr 1fr 1.4fr;gap:6px}
+.acts .btn{min-height:50px;padding:0 6px;font-size:14.5px}
+.seat.me.turn{border-color:transparent;background:transparent}
+
+/* overlay */
+.ov{position:fixed;inset:0;background:rgba(5,14,10,.72);display:flex;align-items:flex-end;justify-content:center;z-index:20;padding:16px max(16px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.sheet{width:100%;max-width:520px;max-height:100%;overflow:auto;background:#123528;border:1px solid var(--line);border-radius:22px;padding:18px;display:flex;flex-direction:column;gap:12px}
+.sheet h3{margin:0;font-size:19px;font-weight:900}
+.sheet .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.res{display:grid;grid-template-columns:auto 1fr auto auto;gap:6px 10px;align-items:center;font-size:14px;font-variant-numeric:tabular-nums}
+.res .h{font-size:11.5px;color:var(--mute)}
+.plus{color:var(--gold);font-weight:700}.minus{color:var(--red-l);font-weight:700}
+
+/* motion */
+.player{border-radius:24px;background:radial-gradient(120% 90% at 50% 30%,#1a5640 0%,#164433 55%,#0c241b 100%);border:8px solid var(--rail);overflow:hidden}
+.stage{min-height:340px;display:grid;place-items:center;padding:18px 10px 6px}
+.scene{display:grid;justify-items:center;gap:12px;width:100%;text-align:center}
+.scene h2{margin:0;font-weight:900;font-size:22px;line-height:1.25;text-wrap:balance}
+.scene p{margin:0;max-width:30em;color:#d9e6de;font-size:14px}
+.row{display:flex;flex-wrap:wrap;justify-content:center;gap:5px;align-items:flex-end}
+.grp{display:grid;gap:4px;justify-items:center}
+.tag{font-size:11px;color:var(--gold);font-weight:700}
+.vs{font-weight:900;font-size:18px;color:var(--gold)}
+.dot{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-weight:900;background:#24644b;border:2px solid #3d8a6a}
+.dot.team{background:var(--red);border-color:var(--paper)}
+.pseat{display:grid;justify-items:center;gap:2px;font-size:12px}
+.t4{display:grid;grid-template-columns:repeat(3,auto);grid-template-areas:". n ." "w m e" ". s .";gap:4px 16px;align-items:center;justify-items:center}
+.scene.play .a{animation:drop .55s cubic-bezier(.2,.8,.2,1) both}
+.scene.play .a:nth-child(2){animation-delay:.07s}.scene.play .a:nth-child(3){animation-delay:.14s}.scene.play .a:nth-child(4){animation-delay:.21s}
+.scene.play .a:nth-child(5){animation-delay:.28s}.scene.play .a:nth-child(6){animation-delay:.35s}.scene.play .a:nth-child(7){animation-delay:.42s}
+.scene.play .a:nth-child(n+8){animation-delay:.5s}
+@keyframes drop{from{transform:translateY(-24px) rotate(-8deg)}}
+.scene.play .pulse{animation:pulse 1.3s ease-in-out .6s 2}
+@keyframes pulse{50%{transform:scale(1.15) translateY(-6px)}}
+.scene.play .slam{animation:slam .5s cubic-bezier(.3,1.6,.5,1) .6s both}
+@keyframes slam{from{transform:scale(1.7);filter:brightness(1.5)}}
+.ctrl{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px 12px;flex-wrap:wrap}
+.dots{display:flex;gap:5px;flex:1;justify-content:center;flex-wrap:wrap}
+.dots button{width:10px;height:10px;padding:0;border-radius:50%;background:#3d6b57;border:0}
+.dots button[aria-current="true"]{background:var(--gold);width:22px;border-radius:6px}
+.ctrl .btn{min-height:42px;font-size:14px}
+
+/* rules / rank */
+.doc{display:flex;flex-direction:column;gap:12px}
+.doc section{background:var(--panel);border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:6px}
+.doc h3{margin:0;font-size:16px;font-weight:900;color:var(--gold)}
+.doc p,.doc li{margin:0;max-width:65ch}
+.doc ul,.doc ol{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:3px}
+.var{font-size:12.5px;color:var(--mute)}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+th{font-size:11.5px;color:var(--mute);font-weight:500}
+.hr{color:var(--red-l);font-weight:700}
+.rankrow{display:flex;flex-wrap:wrap;gap:4px;justify-content:center}
+.terms dt{font-weight:700}.terms dd{margin:0 0 6px;color:#d9e6de}
+
+/* score */
+.sbt td,.sbt th{text-align:center;font-variant-numeric:tabular-nums;padding:7px 4px}
+.sbt th:first-child,.sbt td:first-child{text-align:left;color:var(--mute);width:44px}
+.sbt tr.sum td{font-weight:900;font-size:15px;border-top:2px solid var(--line)}
+.sbt tr.rk td{color:var(--gold);font-weight:700}
+.nm{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.nm input,.man input{width:100%;min-height:44px;border-radius:12px;border:1px solid #3f6b58;background:var(--deep);color:var(--ink);padding:0 12px;font-family:inherit;font-size:15px}
+.man{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.man label{display:flex;flex-direction:column;gap:2px;font-size:13px;color:var(--mute)}
+.banner{background:var(--gold);color:#1d1608;border-radius:14px;padding:10px 14px;font-weight:700}
+
+@media (min-width:480px){:root{--cw:50px;--ch:72px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style></head><body>
+<div id="app">
+
+<!-- 홈 -->
+<section class="scr" id="s-home">
+  <div class="top">
+    <div class="brand"><b>홍스</b><span>RED TEN</span></div>
+    <button id="inst" class="pill" hidden><svg class="ico" style="width:16px;height:16px;stroke:currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>앱 설치</button>
+  </div>
+  <div class="hero">
+    <div class="fan" aria-hidden="true">
+      <div class="big l"><b>10<i>♥</i></b><em>♥</em></div>
+      <div class="big rr"><b>10<i>♦</i></b><em>♦</em></div>
+    </div>
+    <div><h1>빨간 10을 찾아라</h1><p>빨간 10 두 장을 가진 사람이 한 팀</p></div>
+  </div>
+  <button class="cta" data-go="play"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg>연습 게임 시작</button>
+  <div class="tiles">
+    <button class="tile" data-go="motion"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M10 8.5l5 3.5-5 3.5z"/></svg><b>모션 설명서</b><small>10장면으로 한눈에</small></button>
+    <button class="tile" data-go="score"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V11M10 20V5M16 20v-6M2 20h20"/></svg><b>점수판</b><small>4인 판별 기록·누적</small></button>
+    <button class="tile" data-go="rules"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M19 19v2H6"/></svg><b>게임 방법</b><small>규칙·점수표·용어</small></button>
+    <button class="tile" data-go="rank"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="12" width="4" height="8" rx="1"/><rect x="10" y="8" width="4" height="12" rx="1"/><rect x="17" y="4" width="4" height="16" rx="1"/></svg><b>카드 서열·족보</b><small>3이 가장 약하고 2가 최강</small></button>
+  </div>
+</section>
+
+<!-- 연습 게임 -->
+<section class="scr" id="s-play" hidden>
+  <div id="pSetup" class="doc" style="gap:14px">
+    <div class="subhead"><button class="back" data-go="home" aria-label="홈으로"><svg class="ico" style="stroke:currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><h2 class="ttl">연습 게임</h2></div>
+    <p class="foot" style="font-size:14px;color:#d9e6de">나와 컴퓨터 3명(동·북·서)이 한 판씩 겨뤄요. 빨간 10을 가진 사람끼리 한 팀이고, 팀원 두 명이 먼저 다 털면 이깁니다.</p>
+    <div class="panel">
+      <h3>게임 방식</h3>
+      <div class="opt"><span class="lbl">같은 숫자 3장</span><div class="chips" data-opt="triple"><button class="chip" data-v="bomb">폭탄으로 치기</button><button class="chip" data-v="triple">트리플(일반 조합)</button></div></div>
+      <div class="opt"><span class="lbl">팀 공개 (연습용)</span><div class="chips" data-opt="reveal"><button class="chip" data-v="0">숨기기</button><button class="chip" data-v="1">처음부터 보여 주기</button></div></div>
+      <div class="opt"><span class="lbl">컴퓨터 속도</span><div class="chips" data-opt="speed"><button class="chip" data-v="1100">느리게</button><button class="chip" data-v="750">보통</button><button class="chip" data-v="400">빠르게</button></div></div>
+    </div>
+    <button class="cta" id="pStart">시작하기</button>
+    <p class="foot">누적 점수: <span id="pTot"></span> · <button class="back" style="display:inline;height:auto;padding:0;font-size:12.5px;color:var(--gold)" id="pReset">초기화</button></p>
+  </div>
+
+  <div id="pGame" hidden style="display:flex;flex-direction:column;gap:8px;flex:1;min-height:0">
+    <div class="subhead" style="justify-content:space-between"><div class="subhead"><button class="back" id="pQuit" aria-label="게임 나가기"><svg class="ico" style="stroke:currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><h2 class="ttl" style="font-size:17px">연습 게임</h2></div><span class="foot" id="pRule"></span></div>
+    <div class="table">
+      <div class="north" id="seat2"></div>
+      <div class="mid"><div id="seat3"></div><div class="center"><div class="trick" id="trick"></div><div class="by" id="trickBy"></div><div class="msg" id="msg"></div></div><div id="seat1"></div></div>
+    </div>
+    <div class="mebar" id="mebar"></div>
+    <div class="status" id="status"></div>
+    <div class="hand" id="hand"></div>
+    <div class="acts">
+      <button class="btn" id="bUndo">되돌리기</button>
+      <button class="btn" id="bHint">힌트</button>
+      <button class="btn" id="bPass">패스</button>
+      <button class="btn pri" id="bPlay">내기</button>
+    </div>
+  </div>
+</section>
+
+<!-- 모션 설명서 -->
+<section class="scr" id="s-motion" hidden>
+  <div class="subhead"><button class="back" data-go="home" aria-label="홈으로"><svg class="ico" style="stroke:currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><h2 class="ttl">모션 설명서</h2></div>
+  <div class="player">
+    <div class="stage" id="stage"></div>
+    <div class="ctrl">
+      <button class="btn" id="mPrev" aria-label="이전 장면">◀</button>
+      <div class="dots" id="mDots"></div>
+      <button class="btn pri" id="mPlay">▶ 재생</button>
+      <button class="btn" id="mNext" aria-label="다음 장면">▶</button>
+    </div>
+  </div>
+  <p class="foot" id="mCount" style="text-align:center"></p>
+  <button class="btn" data-go="rules">전체 규칙 읽기</button>
+</section>
+
+<!-- 점수판 -->
+<section class="scr" id="s-score" hidden>
+  <div class="subhead"><button class="back" data-go="home" aria-label="홈으로"><svg class="ico" style="stroke:currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><h2 class="ttl">점수판</h2></div>
+  <div id="sbBox" class="doc" style="gap:12px"></div>
+</section>
+
+<!-- 게임 방법 -->
+<section class="scr" id="s-rules" hidden>
+  <div class="subhead"><button class="back" data-go="home" aria-label="홈으로"><svg class="ico" style="stroke:currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><h2 class="ttl">게임 방법</h2></div>
+  <div class="doc">
+    <p class="foot" style="font-size:13.5px">홍스(红十, 빨간 10)는 중국에서 즐기는 팀 카드게임이에요. 지역마다 규칙이 조금씩 달라서, 가장 흔한 4인·52장 방식을 기준으로 정리했어요. <b>지역 차이</b>는 시작 전에 맞춰 두세요.</p>
+    <section><h3>1. 준비</h3><ul><li>4명, 조커를 뺀 트럼프 52장.</li><li>한 사람당 13장씩 모두 나눠 줍니다.</li><li>차례는 시계 반대 방향(나 → 동 → 북 → 서)으로 돕니다.</li></ul></section>
+    <section><h3>2. 카드 서열</h3><p>낮은 것부터 <b>3 · 4 · 5 · 6 · 7 · 8 · 9 · 10 · J · Q · K · A · 2</b>. 무늬(♠♥♦♣)는 서열과 상관없어요.</p><p class="var">지역 차이: ♥10을 2보다 센 단장 최강으로 치는 곳도 있어요.</p></section>
+    <section><h3>3. 팀 — 빨간 10</h3><ul><li><span class="hr">♥10</span>과 <span class="hr">♦10</span>을 가진 두 사람이 <b>빨강 팀</b>, 나머지 둘이 <b>검정 팀</b>.</li><li>누가 빨간 10을 가졌는지는 밝히지 않아요. 빨간 10을 내는 순간 그 사람의 팀이 드러납니다.</li></ul></section>
+    <section><h3>4. 독 — 혼자 두 장</h3><ul><li>한 사람이 빨간 10을 둘 다 가지면 혼자 빨강 팀, 나머지 셋이 검정 팀으로 <b>1대3</b>.</li><li>카드를 받은 직후 <b>독</b>을 선언하면 점수가 3배. 숨기고 해도 돼요.</li><li>1대3에서는 혼자인 쪽이 <b>1등으로 나가야</b> 이기고, 셋 중 누구라도 먼저 나가면 셋이 이깁니다.</li></ul></section>
+    <section><h3>5. 첫 차례</h3><p>첫 판은 <b>♥3</b>을 가진 사람이 ♥3을 포함한 조합으로 시작해요. 다음 판부터는 직전 판 1등이 먼저 냅니다.</p></section>
+    <section><h3>6. 낼 수 있는 조합</h3><div class="tw"><table><thead><tr><th>조합</th><th>설명</th><th>예</th></tr></thead><tbody>
+      <tr><td>싱글</td><td>한 장</td><td>7</td></tr>
+      <tr><td>페어</td><td>같은 숫자 2장</td><td>9 9</td></tr>
+      <tr><td>스트레이트</td><td>연속 숫자 3장 이상, 2는 못 넣음</td><td>5 6 7 8</td></tr>
+      <tr><td>연속 페어</td><td>연속된 페어 2쌍 이상, 2는 못 넣음</td><td>J J Q Q</td></tr>
+      <tr><td>폭탄</td><td>같은 숫자 3장</td><td>6 6 6</td></tr>
+      <tr><td>큰 폭탄</td><td>같은 숫자 4장</td><td>K K K K</td></tr></tbody></table></div>
+      <p class="var">지역 차이: 같은 숫자 3장을 폭탄이 아닌 <b>트리플</b>(일반 조합)로 치고 4장만 폭탄으로 인정하는 곳도 있어요. 연습 게임에서 고를 수 있어요.</p></section>
+    <section><h3>7. 내는 법</h3><ol><li>먼저 내는 사람은 아무 조합이나 냅니다.</li><li>다음 사람은 <b>같은 종류·같은 장수</b>로 더 높게 내야 해요. 스트레이트는 장수가 같고 가장 높은 카드가 더 커야 합니다.</li><li>못 내거나 안 내려면 <b>패스</b>. 다음에 차례가 오면 다시 낼 수 있어요.</li><li>내가 낸 뒤 모두 패스하면 그 판을 가져가고 새로 시작합니다.</li></ol></section>
+    <section><h3>8. 폭탄</h3><ul><li>폭탄은 싱글·페어·스트레이트 등 <b>어떤 조합 위에도</b> 낼 수 있어요.</li><li>4장 폭탄이 3장 폭탄을 이기고, 장수가 같으면 숫자가 높은 쪽이 이깁니다.</li></ul></section>
+    <section><h3>9. 나가기와 승패</h3><ul><li>손패를 다 낸 순서대로 1등, 2등, 3등, 4등.</li><li>나간 사람이 판을 가져가면 그다음 자리 사람이 새로 시작해요.</li><li>한 팀 두 사람이 모두 나가면 그 팀이 이깁니다.</li></ul></section>
+    <section><h3>10. 점수표</h3><div class="tw"><table><thead><tr><th>결과</th><th>이긴 사람</th><th>진 사람</th></tr></thead><tbody>
+      <tr><td>보통 승리</td><td>+1</td><td>−1</td></tr>
+      <tr><td>완승 (1·2등이 한 팀)</td><td>+2</td><td>−2</td></tr>
+      <tr><td>독 (숨김) 1대3</td><td>혼자 이기면 +3</td><td>혼자 지면 −3, 셋은 각 ±1</td></tr>
+      <tr><td>독 선언 1대3</td><td>혼자 이기면 +9</td><td>혼자 지면 −9, 셋은 각 ±3</td></tr></tbody></table></div>
+      <p class="var">점수판에서 기본 점수(×1·×5·×10)를 정할 수 있어요. 점수가 <b>높은 사람이 이깁니다.</b></p></section>
+    <section><h3>11. 용어</h3><dl class="terms" style="margin:0"><dt>빨간 10</dt><dd>♥10·♦10. 가진 사람끼리 한 팀.</dd><dt>독</dt><dd>빨간 10 두 장을 혼자 가진 경우. 1대3으로 싸워요.</dd><dt>폭탄</dt><dd>같은 숫자 3장 또는 4장. 무엇이든 끊어요.</dd><dt>완승</dt><dd>1등과 2등을 한 팀이 차지한 경우.</dd></dl></section>
+    <section><h3>12. 전략 팁</h3><ul><li>누가 빨간 10을 냈는지, 누가 누구의 조합을 끊는지 보면서 팀원을 추리하세요.</li><li>폭탄과 2는 상대가 거의 나가려 할 때 끊는 용도로 아껴 두세요.</li><li>팀원이 이기고 있으면 이길 수 있어도 패스하는 편이 나을 때가 많아요.</li><li>빨간 10을 일찍 내면 내 팀이 드러나 상대에게 정보를 줍니다.</li></ul></section>
+  </div>
+</section>
+
+<!-- 카드 서열·족보 -->
+<section class="scr" id="s-rank" hidden>
+  <div class="subhead"><button class="back" data-go="home" aria-label="홈으로"><svg class="ico" style="stroke:currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><h2 class="ttl">카드 서열·족보</h2></div>
+  <div class="doc" id="rankBox"></div>
+</section>
+
+<nav class="tabs" id="tabs">
+  <button data-go="home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>홈</button>
+  <button data-go="play"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="11" height="15" rx="2"/><path d="M9 21h8a2 2 0 0 0 2-2V8"/></svg>연습</button>
+  <button data-go="score"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V11M10 20V5M16 20v-6M2 20h20"/></svg>점수판</button>
+  <button data-go="rules"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M19 19v2H6"/></svg>방법</button>
+</nav>
+</div>
+
+<script>
+/* ---------- 공통 ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const load=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}};
+const save=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const LB={11:'J',12:'Q',13:'K',14:'A',15:'2'};
+const lab=v=>LB[v]||String(v);
+const isRedS=s=>s==='♥'||s==='♦';
+function cd(v,s,cls=''){return `<span class="cd ${isRedS(s)?'r':''} ${cls}"><b>${lab(v)}</b><i>${s}</i><em>${s}</em></span>`}
+const back=(cls='')=>`<span class="cd bk ${cls}"></span>`;
+function overlay(html){const o=document.createElement('div');o.className='ov';o.innerHTML=`<div class="sheet" role="dialog" aria-modal="true">${html}</div>`;document.body.appendChild(o);return o}
+
+/* 점수 계산 (연습 게임·점수판 공통) — reds: 빨간 10 가진 자리들, win: 'R'|'B' */
+function calcPts(reds,win,sweep,declared,base){
+  const p=[0,0,0,0];
+  if(reds.length===1){const solo=reds[0],m=declared?3:1;
+    for(let i=0;i<4;i++)if(i!==solo){const d=(win==='R'?-m:m)*base;p[i]=d;p[solo]-=d}}
+  else{const m=sweep?2:1;for(let i=0;i<4;i++)p[i]=(reds.includes(i)?(win==='R'?m:-m):(win==='B'?m:-m))*base}
+  return p}
+
+/* ---------- 화면 전환 ---------- */
+const SCR=['home','play','motion','score','rules','rank'];
+function go(n){if(!SCR.includes(n))n='home';
+  SCR.forEach(k=>$('#s-'+k).hidden=k!==n);
+  document.querySelectorAll('#tabs button').forEach(b=>b.setAttribute('aria-current',b.dataset.go===n?'page':'false'));
+  try{history.replaceState(null,'','#'+n)}catch(e){}
+  if(n==='play')P.show(); if(n==='score')SBX.render(); if(n==='motion')M.show(M.i); else M.stop();
+  const s=$('#s-'+n);s.scrollTop=0}
+document.addEventListener('click',e=>{const t=e.target.closest('[data-go]');if(t)go(t.dataset.go)});
+
+/* ---------- 연습 게임 ---------- */
+const P=(()=>{
+  const N=['나','동','북','서'];
+  const SU=['♠','♥','♣','♦'];
+  const TN={single:'싱글',pair:'페어',triple:'트리플',straight:'스트레이트',cpairs:'연속 페어',bomb3:'폭탄',bomb4:'큰 폭탄'};
+  let OPT=Object.assign({triple:'bomb',reveal:'0',speed:'750'},load('redten-opt',{}));
+  let S=null,tok=0,undo=[],sel=new Set(),tot=load('redten-practice',[0,0,0,0]),nextLead=null,inGame=false;
+  const isBomb=t=>t==='bomb3'||t==='bomb4';
+  const isRedC=c=>c.v===10&&isRedS(c.s);
+
+  function classify(cards){
+    const n=cards.length;if(!n)return null;
+    const vs=cards.map(c=>c.v).sort((a,b)=>a-b),same=vs.every(v=>v===vs[0]);
+    const mk=(type,top,low)=>({type,top,low:low??top,cards});
+    if(n===1)return mk('single',vs[0]);
+    if(same&&n===2)return mk('pair',vs[0]);
+    if(same&&n===3)return mk(OPT.triple==='bomb'?'bomb3':'triple',vs[0]);
+    if(same&&n===4)return mk('bomb4',vs[0]);
+    if(vs[n-1]<=14){
+      if(n>=3&&vs.every((v,i)=>v===vs[0]+i))return mk('straight',vs[n-1],vs[0]);
+      if(n>=4&&n%2===0){let ok=true;for(let i=0;i<n;i+=2)if(vs[i]!==vs[i+1]||vs[i]!==vs[0]+i/2)ok=false;if(ok)return mk('cpairs',vs[n-1],vs[0])}
+    }
+    return null}
+  function beats(a,b){if(!b)return true;const A=isBomb(a.type),B=isBomb(b.type);
+    if(A&&!B)return true;if(!A&&B)return false;
+    if(A&&B)return a.cards.length!==b.cards.length?a.cards.length>b.cards.length:a.top>b.top;
+    return a.type===b.type&&a.cards.length===b.cards.length&&a.top>b.top}
+  const desc=c=>(c.type==='straight'||c.type==='cpairs')?`${TN[c.type]} ${lab(c.low)}~${lab(c.top)}`:`${TN[c.type]} ${lab(c.top)}`;
+
+  function allCombos(hand,req){
+    const by={};hand.forEach(c=>(by[c.v]=by[c.v]||[]).push(c));
+    const rk=c=>c.id===req?-10:isRedC(c)?5:0;
+    const pick=(v,k)=>by[v].slice().sort((a,b)=>rk(a)-rk(b)).slice(0,k);
+    const out=[],add=cs=>{const c=classify(cs);if(c)out.push(c)};
+    Object.keys(by).map(Number).forEach(v=>{const n=by[v].length;add(pick(v,1));if(n>=2)add(pick(v,2));if(n>=3)add(pick(v,3));if(n===4)add(pick(v,4))});
+    for(let s=3;s<=12;s++)for(let e=s;e<=14&&by[e];e++)if(e-s>=2){const cs=[];for(let v=s;v<=e;v++)cs.push(pick(v,1)[0]);add(cs)}
+    for(let s=3;s<=13;s++)for(let e=s;e<=14&&by[e]&&by[e].length>=2;e++)if(e-s>=1){const cs=[];for(let v=s;v<=e;v++)cs.push(...pick(v,2));add(cs)}
+    return req?out.filter(c=>c.cards.some(x=>x.id===req)):out}
+  function brk(c,hand){const cnt={},u={};hand.forEach(x=>cnt[x.v]=(cnt[x.v]||0)+1);c.cards.forEach(x=>u[x.v]=(u[x.v]||0)+1);
+    let p=0;for(const v in u){const n=cnt[v];if(u[v]<n){if(n>=3)p+=(OPT.triple==='bomb'||n===4)?8:4;else if(n===2)p+=3}}return p}
+
+  /* 팀 정보: viewer가 t의 팀을 알 수 있는가 */
+  function known(viewer,t){
+    if(viewer===t||S.declared||S.redCount===2)return S.team[t];
+    if(S.redSeen.includes(t))return 'R';
+    const vr=S.team[viewer]==='R';
+    if(vr&&S.solo===viewer)return S.team[t];
+    const k=new Set(S.redSeen);if(vr)k.add(viewer);
+    return k.size===2?S.team[t]:null}
+  const shown=t=>OPT.reveal==='1'?S.team[t]:known(0,t);
+  const active=()=>[0,1,2,3].filter(i=>!S.out.includes(i));
+  const nextA=i=>{do{i=(i+1)%4}while(S.out.includes(i));return i};
+  function minOpp(seat){let m=99;active().forEach(i=>{if(i!==seat&&known(seat,i)!==S.team[seat])m=Math.min(m,S.hands[i].length)});return m}
+
+  /* 컴퓨터 판단 */
+  function aiLead(seat){
+    const h=S.hands[seat],cs=allCombos(h,S.h3);
+    const whole=cs.find(c=>c.cards.length===h.length);if(whole)return whole;
+    const low=minOpp(seat)===1;let best=null,bs=1e9;
+    cs.forEach(c=>{let sc=c.top*10-c.cards.length*9+brk(c,h)*6;if(isBomb(c.type))sc+=200;if(c.top===15&&h.length>4)sc+=40;if(low&&c.type==='single')sc+=80;if(sc<bs){bs=sc;best=c}});
+    return best}
+  function aiFollow(seat,hint){
+    const h=S.hands[seat],t=S.trick,opts=allCombos(h).filter(c=>beats(c,t.combo));
+    if(!opts.length)return null;
+    const fin=opts.find(c=>c.cards.length===h.length);if(fin)return fin;
+    const wt=known(seat,t.by);
+    if(!hint&&wt===S.team[seat])return null;
+    const danger=S.hands[t.by].length<=3||minOpp(seat)<=2;
+    const nb=opts.filter(c=>!isBomb(c.type)).map(c=>({c,sc:c.top+brk(c,h)*2})).sort((a,b)=>a.sc-b.sc);
+    if(nb.length){const c=nb[0].c;
+      if(!hint&&!danger&&((c.top>=14&&h.length>6&&wt===null&&Math.random()<.5)||brk(c,h)>=8))return null;
+      return c}
+    const bombs=opts.filter(c=>isBomb(c.type)).sort((a,b)=>a.cards.length-b.cards.length||a.top-b.top);
+    if(hint||danger||t.combo.top>=14||t.combo.cards.length>=5||h.length<=bombs[0].cards.length+2)return bombs[0];
+    return null}
+
+  /* 진행 */
+  function newRound(){
+    tok++;undo=[];sel.clear();
+    const deck=[];let id=0;for(let v=3;v<=15;v++)SU.forEach(s=>deck.push({v,s,id:id++}));
+    for(let i=deck.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]]}
+    const hands=[0,1,2,3].map(k=>deck.slice(k*13,k*13+13).sort((a,b)=>a.v-b.v||SU.indexOf(a.s)-SU.indexOf(b.s)));
+    const seatOf=f=>hands.findIndex(h=>h.some(f));
+    const r1=seatOf(c=>c.v===10&&c.s==='♥'),r2=seatOf(c=>c.v===10&&c.s==='♦');
+    const team=[0,1,2,3].map(i=>i===r1||i===r2?'R':'B');
+    let turn,h3=null;
+    if(nextLead==null){turn=seatOf(c=>c.v===3&&c.s==='♥');h3=hands[turn].find(c=>c.v===3&&c.s==='♥').id}else turn=nextLead;
+    S={hands,team,solo:r1===r2?r1:-1,declared:false,redSeen:[],redCount:0,out:[],trick:null,last:null,passes:0,turn,h3,bub:['','','',''],msg:h3!=null?`♥3을 가진 ${N[turn]}부터 시작`:`지난 판 1등 ${N[turn]}부터 시작`,over:false,wait:false};
+    render();
+    if(S.solo===0){const o=overlay(`<h3>빨간 10이 두 장!</h3><p style="margin:0">♥10과 ♦10을 혼자 가졌어요. 혼자 1대3으로 싸웁니다. 1등으로 나가야 이겨요.</p><p class="foot">독을 선언하면 이기거나 질 때 점수가 3배예요.</p><div class="row2"><button class="btn" id="dHide">숨기고 하기</button><button class="btn red" id="dDecl">독 선언</button></div>`);
+      o.querySelector('#dHide').onclick=()=>{o.remove();proceed()};
+      o.querySelector('#dDecl').onclick=()=>{o.remove();S.declared=true;S.msg='나 — 독 선언! 혼자 1대3';proceed()};return}
+    if(S.solo>0){const h=S.hands[S.solo];const strong=h.filter(c=>c.v>=14).length+allCombos(h).filter(c=>isBomb(c.type)).length*2;
+      if(strong>=5){S.declared=true;S.msg=`${N[S.solo]} — 독 선언! 혼자 1대3`}}
+    proceed()}
+  function proceed(){
+    S.wait=false;if(S.over)return;render();
+    if(S.turn!==0){S.wait=true;render();const k=tok;
+      setTimeout(()=>{if(k!==tok||S.over)return;const seat=S.turn;act(seat,S.trick?aiFollow(seat):aiLead(seat))},+OPT.speed)}}
+  function act(seat,c){
+    if(c){const ids=new Set(c.cards.map(x=>x.id));S.hands[seat]=S.hands[seat].filter(x=>!ids.has(x.id));
+      S.trick={combo:c,by:seat};S.last=seat;S.passes=0;S.h3=null;S.bub[seat]=desc(c);
+      const reds=c.cards.filter(isRedC).length;
+      if(reds){S.redCount+=reds;if(!S.redSeen.includes(seat))S.redSeen.push(seat);S.msg=`${N[seat]} — 빨간 10! 빨강 팀이 드러났어요`}
+      else S.msg=`${N[seat]}: ${desc(c)}`;
+      if(!S.hands[seat].length){S.out.push(seat);S.msg=`${N[seat]} — ${S.out.length}등으로 나감!`;if(checkEnd())return}
+    }else{S.passes++;S.bub[seat]='패스';S.msg=`${N[seat]}: 패스`}
+    advance()}
+  function advance(){
+    const a=active(),others=a.filter(i=>i!==S.last);
+    if(S.trick&&S.passes>=others.length){
+      const leader=a.includes(S.last)?S.last:nextA(S.last);
+      S.msg=`${N[S.last]} 차지 → ${N[leader]}부터 새로 시작`;
+      S.trick=null;S.passes=0;S.turn=leader;S.wait=true;render();
+      const k=tok;setTimeout(()=>{if(k!==tok)return;S.bub=['','','',''];proceed()},+OPT.speed+500);return}
+    S.turn=nextA(S.turn);proceed()}
+  function checkEnd(){
+    const o=S.out;let win=null;
+    if(S.solo>=0){if(o.length)win=o[0]===S.solo?'R':'B'}
+    else{const r=o.filter(i=>S.team[i]==='R').length,b=o.length-r;if(r===2)win='R';else if(b===2)win='B'}
+    if(!win)return false;finish(win);return true}
+  function finish(win){
+    S.over=true;tok++;
+    const reds=[0,1,2,3].filter(i=>S.team[i]==='R');
+    const sweep=S.solo<0&&S.out.length>=2&&S.team[S.out[0]]===S.team[S.out[1]];
+    const d=calcPts(reds,win,sweep,S.declared,1);
+    tot=tot.map((t,i)=>t+d[i]);save('redten-practice',tot);nextLead=S.out[0];
+    const order=[...S.out,...[0,1,2,3].filter(i=>!S.out.includes(i)).sort((a,b)=>S.hands[a].length-S.hands[b].length)];
+    const me=S.team[0]===win;
+    const kind=S.solo>=0?(S.declared?'독 선언 1대3':'독 1대3'):(sweep?'완승':'보통 승리');
+    render();
+    const o=overlay(`<h3>${me?'이겼어요!':'졌어요'}</h3><p style="margin:0">${win==='R'?'빨강':'검정'} 팀 승리 · ${kind}</p>
+      <div class="res"><span class="h">등수</span><span class="h">이름</span><span class="h">이번 판</span><span class="h">누적</span>
+      ${order.map((i,k)=>`<span>${k<S.out.length?k+1+'등':'-'}</span><span>${N[i]} <span class="badge ${S.team[i]}">${S.solo===i?'독':S.team[i]==='R'?'빨강':'검정'}</span></span><span class="${d[i]>0?'plus':'minus'}">${d[i]>0?'+':''}${d[i]}</span><span>${tot[i]}</span>`).join('')}</div>
+      <div class="row2"><button class="btn" id="rView">판 보기</button><button class="btn pri" id="rNext">다음 판</button></div>`);
+    o.querySelector('#rNext').onclick=()=>{o.remove();newRound()};
+    o.querySelector('#rView').onclick=()=>{o.remove();render()}}
+
+  /* 화면 */
+  function seatHTML(i){
+    const tm=shown(i),out=S.out.indexOf(i),n=S.hands[i].length;
+    const badge=tm?`<span class="badge ${tm}">${S.solo===i&&(S.declared||OPT.reveal==='1')?'독':tm==='R'?'빨강':'검정'}</span>`:'<span class="badge">?</span>';
+    return `<div class="seat ${S.turn===i&&!S.over?'turn':''}"><div class="who"><span>${N[i]}</span>${badge}</div>
+      <div class="cnt">${back('xs')}<span>${n}장</span></div>
+      ${out>=0?`<div class="bub out">${out+1}등</div>`:`<div class="bub">${esc(S.bub[i])}</div>`}</div>`}
+  function render(){
+    if(!S)return;
+    $('#pRule').textContent=OPT.triple==='bomb'?'3장 = 폭탄':'3장 = 트리플';
+    $('#seat1').innerHTML=seatHTML(1);$('#seat2').innerHTML=seatHTML(2);$('#seat3').innerHTML=seatHTML(3);
+    const t=S.trick;
+    $('#trick').innerHTML=t?t.combo.cards.slice().sort((a,b)=>a.v-b.v).map(c=>cd(c.v,c.s,'sm')).join(''):'';
+    $('#trickBy').textContent=t?`${N[t.by]} · ${desc(t.combo)}`:'새로 시작';
+    $('#msg').textContent=S.msg;
+    const myT=S.team[0];
+    $('#mebar').innerHTML=`<div class="who">나 <span class="badge ${myT}">${S.solo===0?'독 (1대3)':myT==='R'?'빨강 팀':'검정 팀'}</span>${S.out.includes(0)?`<span class="badge R">${S.out.indexOf(0)+1}등</span>`:''}</div><span class="foot">누적 ${tot[0]>0?'+':''}${tot[0]}점</span>`;
+    // 손패
+    const hand=$('#hand'),h=S.hands[0],w=hand.clientWidth||340,cw=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--cw'))||46;
+    const need=h.length*cw+(h.length-1)*4,ov=h.length>1&&need>w?(need-w)/(h.length-1)+4:-4;
+    hand.innerHTML=h.map((c,k)=>`<span class="cd ${isRedS(c.s)?'r':''} ${sel.has(c.id)?'sel':''}" data-id="${c.id}" role="button" tabindex="0" aria-pressed="${sel.has(c.id)}" aria-label="${c.s}${lab(c.v)}" style="margin-left:${k?-ov:0}px"><b>${lab(c.v)}</b><i>${c.s}</i><em>${c.s}</em></span>`).join('')||'<span class="foot">다 털었어요!</span>';
+    // 상태
+    const my=S.turn===0&&!S.over&&!S.wait&&!S.out.includes(0);
+    let st='',tip='';
+    if(S.over)st='판이 끝났어요. 결과 창에서 다음 판을 시작하세요.';
+    else if(S.out.includes(0))st='나는 이미 나갔어요. 팀원을 응원해요!';
+    else if(!my)st=`<b>${N[S.turn]}</b> 차례…`;
+    else if(!t)st=S.h3!=null?'<b>내 차례</b> · 먼저 내세요. <b>♥3</b>이 들어간 조합이어야 해요.':'<b>내 차례</b> · 먼저 내세요. 원하는 조합을 자유롭게 낼 수 있어요.';
+    else st=`<b>내 차례</b> · ${desc(t.combo)}보다 높게 내거나 패스`;
+    const picked=h.filter(c=>sel.has(c.id)),pc=classify(picked);
+    if(picked.length){if(!pc)tip='선택한 카드는 조합이 안 돼요.';
+      else if(t&&!beats(pc,t.combo))tip=`${desc(pc)} — 앞 카드보다 낮거나 모양이 달라요.`;
+      else if(S.h3!=null&&!picked.some(c=>c.id===S.h3))tip='첫 판은 ♥3을 꼭 넣어야 해요.';
+      else tip=`${desc(pc)} — 낼 수 있어요.`}
+    else if(my&&t){if(known(0,t.by)===myT&&t.by!==0)tip='팀원이 이기고 있어요. 패스해도 좋아요.';
+      else{const lo=minOpp(0);if(lo<=2)tip=`상대가 ${lo}장 남았어요. 높은 카드나 폭탄으로 끊으세요.`}}
+    $('#status').innerHTML=st+(tip?`<span class="tip">${tip}</span>`:'');
+    $('#bPlay').disabled=!(my&&pc&&beats(pc,t?.combo)&&(S.h3==null||picked.some(c=>c.id===S.h3)));
+    $('#bPass').disabled=!(my&&t);
+    $('#bHint').disabled=!my;
+    $('#bUndo').disabled=!undo.length||S.over}
+  function humanAct(c){undo.push(structuredClone(S));if(undo.length>30)undo.shift();sel.clear();act(0,c)}
+
+  $('#hand').addEventListener('click',e=>{const el=e.target.closest('.cd[data-id]');if(!el||!S)return;const id=+el.dataset.id;sel.has(id)?sel.delete(id):sel.add(id);render()});
+  $('#hand').addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('.cd[data-id]')){e.preventDefault();e.target.click()}});
+  $('#bPlay').onclick=()=>{const c=classify(S.hands[0].filter(x=>sel.has(x.id)));if(c)humanAct(c)};
+  $('#bPass').onclick=()=>humanAct(null);
+  $('#bHint').onclick=()=>{const c=S.trick?aiFollow(0,true):aiLead(0);sel.clear();
+    if(c)c.cards.forEach(x=>sel.add(x.id));render();
+    if(!c){$('#status').innerHTML='낼 수 있는 카드가 없어요. <b>패스</b>하세요.'}};
+  $('#bUndo').onclick=()=>{if(!undo.length)return;tok++;S=undo.pop();sel.clear();S.wait=false;proceed()};
+  $('#pStart').onclick=()=>{inGame=true;$('#pSetup').hidden=true;$('#pGame').hidden=false;newRound()};
+  $('#pQuit').onclick=()=>{const o=overlay(`<h3>게임을 그만할까요?</h3><p class="foot">지금 판은 기록되지 않아요.</p><div class="row2"><button class="btn" id="qNo">계속하기</button><button class="btn red" id="qYes">그만하기</button></div>`);
+    o.querySelector('#qNo').onclick=()=>o.remove();o.querySelector('#qYes').onclick=()=>{o.remove();tok++;inGame=false;S=null;show()}};
+  $('#pReset').onclick=()=>{tot=[0,0,0,0];nextLead=null;save('redten-practice',tot);show()};
+  document.querySelectorAll('#pSetup [data-opt]').forEach(g=>{g.addEventListener('click',e=>{const b=e.target.closest('.chip');if(!b)return;OPT[g.dataset.opt]=b.dataset.v;save('redten-opt',OPT);show()})});
+  addEventListener('resize',()=>{if(S&&inGame)render()});
+  function show(){
+    $('#pSetup').hidden=inGame;$('#pGame').hidden=!inGame;
+    $('#s-play').classList.toggle('fit',inGame);
+    document.querySelectorAll('#pSetup [data-opt]').forEach(g=>g.querySelectorAll('.chip').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===OPT[g.dataset.opt])));
+    $('#pTot').textContent=N.map((n,i)=>`${n} ${tot[i]>0?'+':''}${tot[i]}`).join(' · ');
+    if(inGame)requestAnimationFrame(render)}
+  return {show}})();
+
+/* ---------- 모션 설명서 ---------- */
+const M=(()=>{
+  const C=(v,s,cls='')=>cd(v,s,'a '+cls);
+  const B=()=>back('a');
+  const scenes=[
+`<h2>4명이 13장씩</h2><div class="row">${Array.from({length:13},B).join('')}</div><p>조커를 뺀 52장을 네 명에게 모두 나눠 줍니다. 차례는 시계 반대 방향.</p>`,
+`<h2>3이 가장 약하고 2가 가장 세다</h2><div class="row">${['3','4','5','6','7','8','9','10','J','Q','K','A','2'].map((v,i)=>cd({J:11,Q:12,K:13,A:14,'2':15}[v]||+v,'♠','sm a '+(i===12?'glow pulse':''))).join('')}</div><p>무늬는 서열과 상관없어요. 숫자만 봅니다.</p>`,
+`<h2>빨간 10 두 장이 한 팀</h2><div class="row">${C(10,'♥','glow pulse')}${C(10,'♦','glow pulse')}</div><div class="t4"><div class="pseat" style="grid-area:n"><span class="dot team">북</span>♥10</div><div class="pseat" style="grid-area:w"><span class="dot">서</span></div><div class="pseat" style="grid-area:e"><span class="dot">동</span></div><div class="pseat" style="grid-area:s"><span class="dot team">나</span>♦10</div></div><p>누가 가졌는지는 숨긴 채 시작해요.</p>`,
+`<h2>혼자 두 장이면 독, 1대3</h2><div class="row">${C(10,'♥','glow')}${C(10,'♦','glow')}</div><div class="row" style="gap:10px"><div class="pseat"><span class="dot team">나</span>혼자</div><span class="vs">VS</span><div class="pseat"><span class="dot">동</span></div><div class="pseat"><span class="dot">북</span></div><div class="pseat"><span class="dot">서</span></div></div><p>독을 선언하면 점수가 3배. 1등으로 나가야 이겨요.</p>`,
+`<h2>첫 판은 ♥3부터</h2><div class="row">${C(3,'♥','glow slam')}</div><p>♥3을 가진 사람이 ♥3을 넣은 조합으로 시작해요. 다음 판부터는 직전 판 1등이 먼저.</p>`,
+`<h2>낼 수 있는 조합</h2><div class="row" style="gap:14px"><div class="grp"><div class="row">${C(7,'♣')}</div><span class="tag">싱글</span></div><div class="grp"><div class="row">${C(9,'♠')}${C(9,'♥')}</div><span class="tag">페어</span></div><div class="grp"><div class="row">${C(5,'♦')}${C(6,'♣')}${C(7,'♠')}</div><span class="tag">스트레이트</span></div><div class="grp"><div class="row">${C(11,'♠')}${C(11,'♦')}${C(12,'♣')}${C(12,'♥')}</div><span class="tag">연속 페어</span></div></div><p>스트레이트와 연속 페어에는 2를 넣을 수 없어요.</p>`,
+`<h2>같은 모양, 더 높게</h2><div class="row" style="gap:12px"><div class="row">${C(8,'♠')}${C(8,'♣')}</div><span class="vs">→</span><div class="row">${C(12,'♥','glow slam')}${C(12,'♠','glow slam')}</div></div><p>페어 위엔 더 높은 페어, 4장 스트레이트 위엔 더 높은 4장 스트레이트만.</p>`,
+`<h2>폭탄은 무엇이든 끊는다</h2><div class="row" style="gap:12px"><div class="row">${[[10,'♠'],[11,'♣'],[12,'♦'],[13,'♠'],[14,'♥']].map(x=>cd(x[0],x[1],'sm a')).join('')}</div><span class="vs">＞</span><div class="row">${C(6,'♠','glow slam')}${C(6,'♥','glow slam')}${C(6,'♦','glow slam')}</div></div><p>3장 폭탄 &lt; 4장 폭탄. 장수가 같으면 숫자가 높은 쪽이 이겨요.</p>`,
+`<h2>패스도 전략</h2><div class="row" style="gap:10px"><div class="pseat"><span class="dot team">나</span>K</div><div class="pseat"><span class="dot">동</span>패스</div><div class="pseat"><span class="dot team">북</span>패스</div><div class="pseat"><span class="dot">서</span>패스</div></div><div class="row">${C(13,'♣','glow pulse')}</div><p>모두 패스하면 판을 가져가고 새로 시작. 팀원이 이기고 있으면 일부러 패스해 주세요.</p>`,
+`<h2>팀원 둘이 먼저 나가면 승리</h2><div class="row" style="gap:10px"><div class="pseat"><span class="dot team">1</span>빨강</div><div class="pseat"><span class="dot team">2</span>빨강</div><div class="pseat"><span class="dot">3</span>검정</div><div class="pseat"><span class="dot">4</span>검정</div></div><p>1·2등을 한 팀이 차지하면 완승(점수 2배)이에요.</p>`];
+  let i=0,timer=null;
+  const dots=$('#mDots');
+  scenes.forEach((_,k)=>{const b=document.createElement('button');b.setAttribute('aria-label',`장면 ${k+1}`);b.onclick=()=>{stop();show(k)};dots.appendChild(b)});
+  function show(k){i=(k+scenes.length)%scenes.length;const st=$('#stage');st.innerHTML=`<div class="scene">${scenes[i]}</div>`;
+    const s=st.firstElementChild;requestAnimationFrame(()=>s.classList.add('play'));
+    [...dots.children].forEach((d,n)=>d.setAttribute('aria-current',n===i));$('#mCount').textContent=`${i+1} / ${scenes.length}`}
+  function stop(){clearInterval(timer);timer=null;$('#mPlay').textContent='▶ 재생'}
+  $('#mPlay').onclick=()=>{if(timer){stop();return}$('#mPlay').textContent='❚❚ 정지';timer=setInterval(()=>{if(i===scenes.length-1){stop();return}show(i+1)},5000)};
+  $('#mNext').onclick=()=>{stop();show(i+1)};$('#mPrev').onclick=()=>{stop();show(i-1)};
+  return {show,stop,get i(){return i}}})();
+
+/* ---------- 카드 서열·족보 ---------- */
+$('#rankBox').innerHTML=`
+<section><h3>카드 서열</h3><p class="foot">왼쪽이 가장 약하고 오른쪽이 가장 셉니다. 무늬는 상관없어요.</p>
+<div class="rankrow">${[3,4,5,6,7,8,9,10,11,12,13,14,15].map(v=>cd(v,'♠','sm')).join('')}</div></section>
+<section><h3>빨간 10</h3><div class="rankrow">${cd(10,'♥')}${cd(10,'♦')}</div><p>서열은 보통 10과 같아요. 대신 가진 사람끼리 한 팀이 됩니다.</p></section>
+<section><h3>족보 (조합)</h3><div class="tw"><table><tbody>
+<tr><td style="width:96px"><b>싱글</b></td><td><div class="rankrow" style="justify-content:flex-start">${cd(7,'♣','sm')}</div></td></tr>
+<tr><td><b>페어</b></td><td><div class="rankrow" style="justify-content:flex-start">${cd(9,'♠','sm')}${cd(9,'♥','sm')}</div></td></tr>
+<tr><td><b>스트레이트</b><br><span class="var">3장 이상</span></td><td><div class="rankrow" style="justify-content:flex-start">${cd(5,'♦','sm')}${cd(6,'♣','sm')}${cd(7,'♠','sm')}${cd(8,'♥','sm')}</div></td></tr>
+<tr><td><b>연속 페어</b><br><span class="var">2쌍 이상</span></td><td><div class="rankrow" style="justify-content:flex-start">${cd(11,'♠','sm')}${cd(11,'♦','sm')}${cd(12,'♣','sm')}${cd(12,'♥','sm')}</div></td></tr>
+<tr><td><b>폭탄</b><br><span class="var">같은 숫자 3장</span></td><td><div class="rankrow" style="justify-content:flex-start">${cd(6,'♠','sm')}${cd(6,'♥','sm')}${cd(6,'♦','sm')}</div></td></tr>
+<tr><td><b>큰 폭탄</b><br><span class="var">같은 숫자 4장</span></td><td><div class="rankrow" style="justify-content:flex-start">${cd(13,'♠','sm')}${cd(13,'♥','sm')}${cd(13,'♣','sm')}${cd(13,'♦','sm')}</div></td></tr>
+</tbody></table></div></section>
+<section><h3>이기는 순서</h3><ol><li>같은 종류·같은 장수끼리는 가장 높은 카드가 큰 쪽이 이겨요.</li><li>폭탄은 폭탄이 아닌 모든 조합을 이겨요.</li><li>폭탄끼리는 <b>4장 &gt; 3장</b>, 장수가 같으면 숫자가 높은 쪽.</li></ol><p class="var">트리플 규칙으로 하면 같은 숫자 3장은 트리플끼리만 겨루고, 4장만 폭탄이에요.</p></section>`;
+
+/* ---------- 점수판 ---------- */
+const SBX=(()=>{
+  const MODES=[['r5','5판'],['r10','10판'],['free','제한 없음'],['p100','100점 내기'],['p200','200점 내기'],['p300','300점 내기']];
+  const BASES=[1,5,10];
+  let D=load('redten-score',null)||{names:['나','동','북','서'],mode:'r10',base:1,rounds:[],started:false};
+  const box=$('#sbBox');
+  const totals=()=>D.names.map((_,i)=>D.rounds.reduce((s,r)=>s+r.pts[i],0));
+  const ranks=t=>t.map(v=>1+t.filter(x=>x>v).length);
+  function done(){const t=totals(),m=D.mode;
+    if(m[0]==='r')return D.rounds.length>=+m.slice(1);
+    if(m[0]==='p')return D.rounds.length>0&&Math.max(...t)>=+m.slice(1);return false}
+  const keep=()=>save('redten-score',D);
+  const modeName=()=>MODES.find(x=>x[0]===D.mode)[1];
+  function render(){
+    if(!D.started){
+      box.innerHTML=`<section><h3>이름</h3><div class="nm">${D.names.map((n,i)=>`<label class="lbl" for="sbn${i}" style="display:flex;flex-direction:column;gap:2px">${i+1}번<input id="sbn${i}" value="${esc(n)}" maxlength="8"></label>`).join('')}</div></section>
+      <section><h3>게임 방식</h3><div class="chips" id="sbMode">${MODES.map(m=>`<button class="chip" data-v="${m[0]}" aria-pressed="${D.mode===m[0]}">${m[1]}</button>`).join('')}</div>
+      <p class="var">판수 방식은 정한 판수가 끝나면 종료, 점수 내기는 누구든 누적이 기준점에 닿으면 그 판에서 종료.</p></section>
+      <section><h3>기본 점수</h3><div class="chips" id="sbBase">${BASES.map(b=>`<button class="chip" data-v="${b}" aria-pressed="${D.base===b}">×${b}</button>`).join('')}</div>
+      <p class="var">보통 승리 ±1, 완승 ±2, 독 ±3, 독 선언 ±9에 곱해져요. 점수가 높은 사람이 이깁니다.</p></section>
+      <button class="cta" id="sbGo">${D.rounds.length?'이어서 기록하기':'점수판 시작'}</button>`;
+      const readNames=()=>{D.names=D.names.map((n,i)=>($('#sbn'+i).value.trim()||n))};
+      $('#sbMode').onclick=e=>{const b=e.target.closest('.chip');if(!b)return;readNames();D.mode=b.dataset.v;keep();render()};
+      $('#sbBase').onclick=e=>{const b=e.target.closest('.chip');if(!b)return;readNames();D.base=+b.dataset.v;keep();render()};
+      $('#sbGo').onclick=()=>{readNames();D.started=true;keep();render()};return}
+    const t=totals(),rk=ranks(t),fin=done();
+    const winner=t.indexOf(Math.max(...t));
+    box.innerHTML=`<div class="foot" style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px"><span>${modeName()} · 기본 ×${D.base}</span><span>${D.rounds.length}판 진행</span></div>
+    ${fin?`<div class="banner">최종 결과 · ${rk.filter(r=>r===1).length>1?'공동 1등: '+D.names.filter((_,i)=>rk[i]===1).map(esc).join(', '):esc(D.names[winner])+' 1등'} (${t[winner]}점)</div>`:''}
+    <section style="padding:8px 10px"><div class="tw"><table class="sbt"><thead><tr><th>판</th>${D.names.map(n=>`<th>${esc(n)}</th>`).join('')}</tr></thead><tbody>
+    ${D.rounds.map((r,k)=>`<tr><td>${k+1}${r.note?`<br><span class="var">${esc(r.note)}</span>`:''}</td>${r.pts.map(p=>`<td class="${p>0?'plus':p<0?'minus':''}">${p>0?'+':''}${p}</td>`).join('')}</tr>`).join('')||`<tr><td colspan="5" class="foot" style="text-align:center;padding:18px">아직 기록이 없어요. 판 기록을 눌러 시작하세요.</td></tr>`}
+    <tr class="sum"><td>합계</td>${t.map(v=>`<td>${v}</td>`).join('')}</tr>
+    <tr class="rk"><td>등수</td>${rk.map(r=>`<td>${r}등</td>`).join('')}</tr></tbody></table></div></section>
+    <button class="cta" id="sbAdd" ${fin?'disabled style="opacity:.4"':''}>판 기록</button>
+    <div class="row2" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px"><button class="btn" id="sbUndo" ${D.rounds.length?'':'disabled'}>판 취소</button><button class="btn" id="sbEdit">이름·방식</button><button class="btn" id="sbNew">새 게임</button></div>
+    <p class="var">기록은 이 기기에만 저장돼요.</p>`;
+    $('#sbAdd').onclick=()=>{if(!fin)record()};
+    $('#sbUndo').onclick=()=>{D.rounds.pop();keep();render()};
+    $('#sbEdit').onclick=()=>{D.started=false;keep();render()};
+    $('#sbNew').onclick=()=>{const o=overlay(`<h3>새 게임을 시작할까요?</h3><p class="foot">지금까지의 기록이 모두 지워져요. 이름과 방식은 그대로예요.</p><div class="row2"><button class="btn" id="nNo">취소</button><button class="btn red" id="nYes">지우고 새로 시작</button></div>`);
+      o.querySelector('#nNo').onclick=()=>o.remove();o.querySelector('#nYes').onclick=()=>{o.remove();D.rounds=[];D.started=false;keep();render()}}}
+  function record(){
+    const R={how:'auto',reds:[],win:'R',sweep:false,decl:false};
+    const o=overlay('');const sh=o.firstElementChild;
+    function pts(){if(R.how==='man')return D.names.map((_,i)=>parseInt(($('#man'+i)||{}).value||'0',10)||0);
+      if(!R.reds.length)return null;return calcPts(R.reds,R.win,R.reds.length===2&&R.sweep,R.reds.length===1&&R.decl,D.base)}
+    function draw(){
+      const p=R.how==='auto'?pts():null;
+      sh.innerHTML=`<h3>${D.rounds.length+1}판 기록</h3>
+      <div class="chips" id="rHow"><button class="chip" data-v="auto" aria-pressed="${R.how==='auto'}">자동 계산</button><button class="chip" data-v="man" aria-pressed="${R.how==='man'}">직접 입력</button></div>
+      ${R.how==='auto'?`
+      <div class="opt"><span class="lbl">빨간 10을 가진 사람 (혼자 두 장이면 한 명만)</span><div class="chips" id="rReds">${D.names.map((n,i)=>`<button class="chip" data-v="${i}" aria-pressed="${R.reds.includes(i)}">${esc(n)}</button>`).join('')}</div></div>
+      <div class="opt"><span class="lbl">이긴 팀</span><div class="chips" id="rWin"><button class="chip" data-v="R" aria-pressed="${R.win==='R'}">빨강 팀${R.reds.length===1?' (독)':''}</button><button class="chip" data-v="B" aria-pressed="${R.win==='B'}">검정 팀</button></div></div>
+      ${R.reds.length===2?`<div class="opt"><span class="lbl">1·2등을 한 팀이 차지했나요?</span><div class="chips" id="rSw"><button class="chip" data-v="0" aria-pressed="${!R.sweep}">아니요</button><button class="chip" data-v="1" aria-pressed="${R.sweep}">네, 완승</button></div></div>`:''}
+      ${R.reds.length===1?`<div class="opt"><span class="lbl">독을 선언했나요?</span><div class="chips" id="rDc"><button class="chip" data-v="0" aria-pressed="${!R.decl}">숨기고 했어요</button><button class="chip" data-v="1" aria-pressed="${R.decl}">선언했어요 (×3)</button></div></div>`:''}
+      <div class="res" style="grid-template-columns:1fr auto">${p?D.names.map((n,i)=>`<span>${esc(n)}</span><span class="${p[i]>0?'plus':'minus'}">${p[i]>0?'+':''}${p[i]}</span>`).join(''):'<span class="foot">빨간 10을 가진 사람을 고르면 점수가 계산돼요.</span>'}</div>`
+      :`<div class="man">${D.names.map((n,i)=>`<label for="man${i}">${esc(n)}<input id="man${i}" type="number" inputmode="numeric" placeholder="0"></label>`).join('')}</div><p class="var">마이너스는 −를 붙여 입력하세요.</p>`}
+      <div class="row2"><button class="btn" id="rCancel">취소</button><button class="btn pri" id="rSave" ${R.how==='auto'&&!p?'disabled':''}>저장</button></div>`;
+      const chip=(id,fn)=>{const g=sh.querySelector(id);if(g)g.onclick=e=>{const b=e.target.closest('.chip');if(b){fn(b.dataset.v);draw()}}};
+      chip('#rHow',v=>R.how=v);
+      chip('#rReds',v=>{v=+v;R.reds=R.reds.includes(v)?R.reds.filter(x=>x!==v):[...R.reds,v].slice(-2)});
+      chip('#rWin',v=>R.win=v);chip('#rSw',v=>R.sweep=v==='1');chip('#rDc',v=>R.decl=v==='1');
+      sh.querySelector('#rCancel').onclick=()=>o.remove();
+      sh.querySelector('#rSave').onclick=()=>{const q=pts();if(!q)return;
+        const note=R.how==='man'?'직접':R.reds.length===1?(R.decl?'독 선언':'독'):(R.sweep?'완승':'');
+        D.rounds.push({pts:q,note});keep();o.remove();render()}}
+    draw()}
+  return {render}})();
+
+/* boot */
+addEventListener('hashchange',()=>{const n=location.hash.slice(1);if(!$('#s-'+n)||$('#s-'+n).hidden)go(n)});
+go((location.hash||'#home').slice(1));
+</script>
+<script>
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{})}
+/* 앱 설치: 안드로이드는 설치 창, 아이폰은 방법 안내. 이미 앱으로 열었으면 버튼 숨김 */
+(function(){const b=document.getElementById('inst');if(!b)return;
+ const standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone;if(standalone)return;
+ let dp=null;b.hidden=false;
+ addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e});
+ addEventListener('appinstalled',()=>{b.hidden=true});
+ const ios=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+ b.onclick=async()=>{if(dp){dp.prompt();const r=await dp.userChoice;dp=null;if(r.outcome==='accepted')b.hidden=true;return}
+  const o=document.createElement('div');o.className='ov';
+  o.innerHTML='<div class="sheet"><h3>홈 화면에 앱으로 설치</h3>'+(ios?
+   '<ol style="margin:0;padding-left:1.2em"><li><b>사파리</b>로 이 페이지를 열어요 (카톡 안에서 열렸다면 오른쪽 아래 ⋯ → 다른 브라우저로 열기).</li><li>아래쪽 <b>공유 버튼</b>(네모에 위쪽 화살표)을 눌러요.</li><li><b>홈 화면에 추가</b> → 추가.</li></ol>':
+   '<ol style="margin:0;padding-left:1.2em"><li><b>크롬</b>으로 이 페이지를 열어요 (카톡 안에서 열렸다면 ⋮ → 다른 브라우저로 열기).</li><li>오른쪽 위 <b>⋮ 메뉴</b>를 눌러요.</li><li><b>앱 설치</b> 또는 <b>홈 화면에 추가</b>를 눌러요.</li></ol>')+
+   '<p class="foot">설치하면 아이콘을 눌러 전체 화면 앱처럼 열리고, 한 번 연 뒤엔 인터넷 없이도 돼요.</p><button class="btn pri" id="insok">확인</button></div>';
+  document.body.appendChild(o);o.onclick=e=>{if(e.target===o||e.target.id==='insok')o.remove()}}})();
+</script></body></html>

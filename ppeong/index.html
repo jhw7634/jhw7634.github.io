@@ -201,7 +201,7 @@ th{font-size:12px;color:var(--muted);font-weight:700}
   <button class="start" data-go="play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h8a2 2 0 0 1 2 2v10l-3 3H7a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><path d="M14 19v-3h3"/></svg>연습 게임 시작하기 ›</button>
   <div class="tiles">
     <button data-go="motion"><svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="7,4 20,12 7,20"/></svg><b>모션 설명서</b><span>5명 한 판 따라가기</span></button>
-    <button data-go="score"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M5 4h14v4a7 7 0 0 1-14 0z"/></svg><b>점수판</b><span>2~5명 실제 판 기록</span></button>
+    <button data-go="score"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M5 4h14v4a7 7 0 0 1-14 0z"/></svg><b>점수판</b><span>2~6명 실제 판 기록</span></button>
     <button data-go="calc"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 12h3M13 12h3M8 16h3M13 16h3"/></svg><b>조합 계산기</b><span>내 손패 약 확인</span></button>
     <button data-go="guide"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h11a2 2 0 0 1 2 2v14H7a2 2 0 0 1-2-2z"/><path d="M5 17a2 2 0 0 1 2-2h11"/></svg><b>게임 방법</b><span>규칙·용어·팁</span></button>
   </div>
@@ -394,14 +394,15 @@ const MODES=['r5','r10','r0','p100','p200','p300'];
 const modeInfo=m=>({pts:m[0]==='p',n:+m.slice(1)});
 const modeLabel=m=>{const o=modeInfo(m);return o.pts?o.n+'점 내기':o.n?o.n+'판':'제한 없음'};
 const modeDone=(m,rounds,tots)=>{const o=modeInfo(m);return o.pts?Math.max(...tots)>=o.n:!!o.n&&rounds>=o.n};
-const DEF={n:4,mode:'r10',names:['나','B','C','D','E'],log:[]};
+const DEF={n:4,mode:'r10',names:['나','B','C','D','E','F'],log:[]};
 let G;try{G=JSON.parse(localStorage.getItem('ppong-score'))||null}catch(e){G=null}
 if(!G||!Array.isArray(G.log))G=JSON.parse(JSON.stringify(DEF));
+while(G.names.length<6)G.names.push(String.fromCharCode(65+G.names.length));
 if(!MODES.includes(G.mode)){G.mode=G.rounds===0?'r0':'r10';delete G.rounds}
 const sv=()=>{try{localStorage.setItem('ppong-score',JSON.stringify(G))}catch(e){}};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const pc=document.getElementById('pcount');
-[2,3,4,5].forEach(n=>{const b=document.createElement('button');b.id='pc'+n;b.textContent=n+'명';b.onclick=()=>{if(G.log.length&&n!==G.n){showErr('기록 중에는 인원을 바꿀 수 없어요. 새 게임을 눌러 주세요.');return}G.n=n;sv();renderScore()};pc.appendChild(b)});
+[2,3,4,5,6].forEach(n=>{const b=document.createElement('button');b.id='pc'+n;b.textContent=n+'명';b.onclick=()=>{if(G.log.length&&n!==G.n){showErr('기록 중에는 인원을 바꿀 수 없어요. 새 게임을 눌러 주세요.');return}G.n=n;sv();renderScore()};pc.appendChild(b)});
 const rsel=document.getElementById('rounds');rsel.onchange=()=>{G.mode=rsel.value;sv();renderScore()};
 function showErr(t){const e=document.getElementById('err');e.textContent=t;e.hidden=!t}
 function renderNames(){const w=document.getElementById('names');w.innerHTML='';for(let i=0;i<G.n;i++){const inp=document.createElement('input');inp.id='nm'+i;inp.value=G.names[i];inp.maxLength=8;inp.setAttribute('aria-label',(i+1)+'번 이름');inp.oninput=()=>{G.names[i]=inp.value||String.fromCharCode(65+i);sv();renderBoard();renderEntryLabels()};w.appendChild(inp)}}
@@ -506,7 +507,7 @@ setTimeout(()=>show(0,true),150);
 (function(){
 const gst=document.getElementById('gst'),gm=document.getElementById('gm'),ghud=document.getElementById('ghud');
 let N=4,MODE='r5',STEP=true,PRAC=false,SND=true,aiSel=null,drawn=null,P=[],deck=[],dis=[],cur=0,round=0,reshuffled=false,busy=false,sel=null,phase='idle';
-const NAMES=['나','B','C','D','E'];
+const NAMES=['나','B','C','D','E','F'];
 /* sound: tiny synthesized effects, start only after a tap */
 let AC=null;function ac(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){AC=null}}if(AC&&AC.state==='suspended')AC.resume();return AC}
 function tone(f,t,d,type,vol){const c=ac();if(!c||!SND)return;const o=c.createOscillator(),g=c.createGain();o.type=type||'sine';o.frequency.setValueAtTime(f,c.currentTime+t);g.gain.setValueAtTime(0,c.currentTime+t);g.gain.linearRampToValueAtTime(vol||.18,c.currentTime+t+.01);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+t+d);o.connect(g).connect(c.destination);o.start(c.currentTime+t);o.stop(c.currentTime+t+d+.02)}
@@ -526,7 +527,7 @@ function discardTip(p){const cnt={};p.hand.forEach(m=>cnt[m]=(cnt[m]||0)+1);cons
  const s=p.hand.slice().sort((a,b)=>a-b);if(!p.meld.length&&s.length>=5&&s[0]<=2&&s[2]<=2)t+=' 작은 패가 모여 있어 10부족을 노려볼 만해요.';
  return t}
 
-const seg=document.getElementById('gpc');[2,3,4,5].forEach(n=>{const b=document.createElement('button');b.id='gpc'+n;b.textContent=n+'명';b.setAttribute('aria-pressed',n===N);b.onclick=()=>{N=n;seg.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b))};seg.appendChild(b)});
+const seg=document.getElementById('gpc');[2,3,4,5,6].forEach(n=>{const b=document.createElement('button');b.id='gpc'+n;b.textContent=n+'명';b.setAttribute('aria-pressed',n===N);b.onclick=()=>{N=n;seg.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b))};seg.appendChild(b)});
 function begin(prac){PRAC=prac;MODE=document.getElementById('grounds').value;P=[];for(let i=0;i<N;i++)P.push({name:NAMES[i],ai:i>0,hand:[],meld:[],tot:0});round=0;HIST.length=0;document.getElementById('setup').hidden=true;document.getElementById('game').hidden=false;document.getElementById('gtip').textContent='용어를 누르면 뜻이 여기 나와요.';startRound()}
 document.getElementById('gprac').onclick=()=>begin(true);
 document.getElementById('gquit').onclick=()=>{document.getElementById('setup').hidden=false;document.getElementById('game').hidden=true;gst.innerHTML='';phase='idle';busy=false;aiSel=null;sel=null;arm({})};
@@ -547,11 +548,11 @@ function startRound(){round++;HIST.length=0;B.next.textContent='다음 ▶';aiSe
 function shuffle(d){for(let i=d.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]]}}
 function say(t){gm.textContent=t}
 function hud(){{const mi=modeInfo(MODE);ghud.textContent=(mi.pts?round+'판 · '+mi.n+'점 내기':mi.n?round+' / '+mi.n+'판':round+'판')+' · 더미 '+deck.length+'장'}}
-function seat(i){const others={2:[[50,19]],3:[[24,19],[76,19]],4:[[8,54],[50,19],[92,54]],5:[[8,58],[28,19],[72,19],[92,58]]}[N];return i===0?[50,84]:others[i-1]}
+function seat(i){const others={2:[[50,19]],3:[[24,19],[76,19]],4:[[8,54],[50,19],[92,54]],5:[[8,58],[28,19],[72,19],[92,58]],6:[[8,60],[21,19],[50,19],[79,19],[92,60]]}[N];return i===0?[50,84]:others[i-1]}
 function render(){gst.innerHTML='';hud();
  P.forEach((p,i)=>{const [x,y]=seat(i),vert=(x<20||x>80);const n=p.hand.length;
   p.hand.forEach((m,k)=>{const e=document.createElement('div');e.className='cd'+(i===0?' me':(PRAC?'':' dn'));e.innerHTML=face(m,null,vi(p.hand,k))+'<div class="bk"></div>';
-   const off=(k-(n-1)/2)*(i===0?8:(vert?(PRAC?7:5):(PRAC?(N===5?5:5.5):3.5)));e.style.left=(vert?x:x+off)+'%';e.style.top=i===0?'calc(100% - var(--ch)/2 - 30px)':(vert?y+off:y)+'%';e.style.zIndex=50+k;
+   const off=(k-(n-1)/2)*(i===0?8:(vert?(PRAC?7:5):(PRAC?(N===6?4:N===5?5:5.5):3.5)));e.style.left=(vert?x:x+off)+'%';e.style.top=i===0?'calc(100% - var(--ch)/2 - 30px)':(vert?y+off:y)+'%';e.style.zIndex=50+k;
    if(aiSel&&aiSel.i===i&&aiSel.k===k)e.classList.add('sel');if(drawn&&drawn.i===i&&drawn.k===k)e.classList.add('hl');if(i===0){if(sel===k)e.classList.add('sel');e.onclick=()=>{if(phase!=='discard'||cur!==0||busy)return;if(sel===k&&act.discard){act.discard();return}sel=k;render();if(act.discard)B.discard.disabled=false}}gst.appendChild(e)});
   p.meld.forEach((m,k)=>{const e=document.createElement('div');e.className='cd';e.innerHTML=face(m,null,k);const mx=i===0?30:(vert?(x<20?x+9:x-9):x);e.style.left=(mx+(vert?0:(k-1)*6))+'%';e.style.top=i===0?'calc(100% - var(--ch)*1.5 - 44px)':(vert?'calc('+(y-7*(n-1)/2)+'% - var(--ch) - 48px + '+(k*18)+'px)':'calc('+y+'% + var(--ch) + 6px)');e.style.zIndex=30;e.style.opacity=.92;gst.appendChild(e)});
   const l=document.createElement('div');l.className='lb'+(i===cur?' turn':'');l.style.left=x+'%';l.style.top=i===0?'calc(100% - 14px)':(vert?'calc('+(y-7*(n-1)/2)+'% - var(--ch)/2 - 20px)':'calc('+y+'% - var(--ch)/2 - 12px)');if(vert&&p.meld.length)l.style.top='calc('+(y+7*(n-1)/2)+'% + var(--ch)/2 + 20px)';if(i===0||!vert)l.classList.add('one');

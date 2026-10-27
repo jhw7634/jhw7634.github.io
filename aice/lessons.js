@@ -1,5 +1,5 @@
 // 공부 탭: 파이썬을 처음 보는 사람을 위한 강의 (시험 흐름 순서, g는 묶음 이름)
-// 필드: id, g, title, sum(한 줄 요약), parts[{t: 설명, c?: 코드, o?: 실행 결과}]
+// 필드: id, g, title, sum(한 줄 요약), k(이어서 읽기 버튼 아래 작게 보일 함수·인자·메서드 목록), parts[{t: 설명, c?: 코드, o?: 실행 결과}]
 // 한 강의의 코드는 위에서부터 이어서 실행되며, python3 check.py가 c를 실제로 실행해 o와 같은지 확인합니다.
 // 저작권: 모든 설명과 예제는 새로 작성했습니다.
 window.AICE_LESSONS = [
@@ -8,6 +8,7 @@ window.AICE_LESSONS = [
     "g": "파이썬 기초",
     "title": "파이썬과 시험 환경",
     "sum": "파이썬이 뭔지, 시험에서 코드를 어디에 쓰고 어떻게 실행하는지",
+    "k": "print() · # 주석",
     "parts": [
       {
         "t": "파이썬은 컴퓨터에게 일을 시키는 언어예요. 영어 단어와 기호로 '이 파일을 읽어', '평균을 구해'처럼 명령을 적으면 컴퓨터가 위에서 아래로 한 줄씩 실행해요."
@@ -35,6 +36,7 @@ window.AICE_LESSONS = [
     "g": "파이썬 기초",
     "title": "변수와 자료형",
     "sum": "값에 이름 붙이기, 숫자·글자·참거짓",
+    "k": "변수 = 값 · int · float · str · bool · type()",
     "parts": [
       {
         "t": "변수는 값에 붙이는 이름표예요. = 는 '같다'가 아니라 '오른쪽 값을 왼쪽 이름에 넣어라'라는 뜻이에요.",
@@ -68,6 +70,7 @@ window.AICE_LESSONS = [
     "g": "파이썬 기초",
     "title": "리스트와 딕셔너리",
     "sum": "여러 값을 한 번에 담기, 0부터 세는 번호, 자르기",
+    "k": "[리스트] · {딕셔너리} · len() · [0] · [-1] · [1:3]",
     "parts": [
       {
         "t": "리스트는 여러 값을 순서대로 담는 상자예요. 대괄호 [ ] 안에 쉼표로 나열해요.",
@@ -101,6 +104,7 @@ window.AICE_LESSONS = [
     "g": "파이썬 기초",
     "title": "함수, 인자, 메서드",
     "sum": "괄호 ( ) 와 점 . 읽는 법, 이름=값 인자",
+    "k": "max() · round(ndigits=) · .upper() · .append() · def",
     "parts": [
       {
         "t": "함수는 이름 뒤에 괄호를 붙여 실행하는 명령이에요. 괄호 안에 넣는 값을 인자라고 해요. len, print, max, round도 함수예요.",
@@ -132,6 +136,7 @@ window.AICE_LESSONS = [
     "g": "파이썬 기초",
     "title": "조건문과 반복문",
     "sum": "if와 for, 들여쓰기",
+    "k": "if · else · for · in",
     "parts": [
       {
         "t": "if는 조건이 참일 때만 실행해요. 조건 뒤에 콜론(:)을 쓰고, 실행할 줄은 들여써요(스페이스 4칸). 파이썬은 들여쓰기로 범위를 구분해요.",
@@ -153,6 +158,7 @@ window.AICE_LESSONS = [
     "g": "파이썬 기초",
     "title": "라이브러리와 import",
     "sum": "도구 상자 불러오기, as로 별칭 붙이기",
+    "k": "import numpy as np · import pandas as pd · from sklearn import",
     "parts": [
       {
         "t": "라이브러리는 다른 사람들이 만들어 둔 도구 상자예요. 표 다루기, 그래프, 머신러닝 같은 기능이 이미 들어 있어서 import로 불러와 쓰기만 하면 돼요."
@@ -177,6 +183,7 @@ window.AICE_LESSONS = [
     "g": "데이터 도구",
     "title": "numpy: 숫자 계산 도구",
     "sum": "배열, 한 번에 계산하기, shape, 평균과 argmax",
+    "k": "np.array() · .mean() · .max() · .argmax() · .astype() · .reshape()",
     "parts": [
       {
         "t": "넘파이(numpy)는 숫자를 빠르게 계산하는 도구예요. 핵심은 배열(array)이에요. 리스트와 비슷하지만, 안의 숫자 전체를 한 번에 계산할 수 있어요.",
@@ -215,6 +222,7 @@ window.AICE_LESSONS = [
     "g": "데이터 도구",
     "title": "pandas 1: 표 만들고 읽기",
     "sum": "DataFrame과 Series, read_csv, head·shape·info",
+    "k": "pd.DataFrame() · pd.read_csv() · .head() · .shape · .info()",
     "parts": [
       {
         "t": "판다스(pandas)는 엑셀 같은 표를 다루는 도구예요. 표 전체를 DataFrame(데이터프레임), 표의 열 하나를 Series(시리즈)라고 불러요. 보통 표를 df라는 이름에 담아요."
@@ -247,6 +255,7 @@ window.AICE_LESSONS = [
     "g": "데이터 도구",
     "title": "pandas 2: 열과 행 고르기",
     "sum": "df['열'], 조건으로 거르기, loc·iloc",
+    "k": "df['열'] · df[['열','열']] · df[조건] · .loc · .iloc",
     "parts": [
       {
         "t": "열 하나는 df['열이름']으로 꺼내요. 결과는 Series예요. tolist()로 리스트로 바꿔 볼 수 있어요.",
@@ -280,6 +289,7 @@ window.AICE_LESSONS = [
     "g": "데이터 도구",
     "title": "pandas 3: 정리하고 요약하기",
     "sum": "빈 값, 열 지우기, 값 세기, 그룹별 평균, 새 열",
+    "k": "isnull().sum() · fillna() · drop(axis=1) · value_counts() · groupby()",
     "parts": [
       {
         "t": "빈 칸은 판다스에서 NaN(결측치)으로 나와요. isnull().sum()으로 열마다 빈 칸이 몇 개인지 세요.",
@@ -318,6 +328,7 @@ window.AICE_LESSONS = [
     "g": "데이터 도구",
     "title": "그래프: matplotlib과 seaborn",
     "sum": "그래프 종류와 언제 쓰는지",
+    "k": "sns.countplot(data=, x=) · histplot · boxplot · corr() · plt.show()",
     "parts": [
       {
         "t": "matplotlib은 그래프의 기본 도구, seaborn은 그 위에서 표(df)를 넣으면 예쁜 그래프를 한 줄로 그려 주는 도구예요. 시험에서는 주로 seaborn으로 그리고 plt.show()로 화면에 띄워요."
@@ -342,6 +353,7 @@ window.AICE_LESSONS = [
     "g": "전처리",
     "title": "결측치(빈 칸) 처리",
     "sum": "빈 칸 찾기, 지우기, 채우기, 언제 무엇을 쓰는지",
+    "k": "isnull().sum() · dropna(subset=) · fillna(mean()) · mode()[0]",
     "parts": [
       {
         "t": "결측치는 값이 비어 있는 칸이에요. 판다스는 보통 NaN으로 보여 줘요(버전·열 종류에 따라 None이나 <NA>로 보이기도 해요). 대부분의 모델은 빈 칸이 있으면 오류가 나서(ValueError) 먼저 처리해야 해요."
@@ -374,6 +386,7 @@ window.AICE_LESSONS = [
     "g": "전처리",
     "title": "이상치와 잘못된 값",
     "sum": "튀는 값 찾기(IQR), 잘못 입력된 값 고치기",
+    "k": "quantile() · IQR · replace() · pd.to_numeric(errors=)",
     "parts": [
       {
         "t": "이상치는 다른 값들과 동떨어진 값이에요. 나이 200세, 월급 -100원처럼 잘못 들어간 값일 수도 있고, 진짜 드문 값일 수도 있어요. boxplot을 그리면 상자 밖의 점으로 보여요."
@@ -405,6 +418,7 @@ window.AICE_LESSONS = [
     "g": "전처리",
     "title": "인코딩: 글자를 숫자로",
     "sum": "원-핫 인코딩, 라벨 인코딩, map",
+    "k": "pd.get_dummies(columns=, drop_first=) · LabelEncoder · fit_transform() · map()",
     "parts": [
       {
         "t": "모델은 숫자만 계산할 수 있어요. 'Seoul', '남' 같은 글자 열은 숫자로 바꿔야 해요. 이걸 인코딩이라고 해요."
@@ -436,6 +450,7 @@ window.AICE_LESSONS = [
     "g": "전처리",
     "title": "데이터 나누기와 스케일링",
     "sum": "train_test_split의 인자들, StandardScaler와 MinMaxScaler",
+    "k": "train_test_split(test_size=, stratify=, random_state=) · MinMaxScaler · StandardScaler",
     "parts": [
       {
         "t": "train_test_split(X, y, ...)은 데이터를 섞은 뒤 학습용과 검증용으로 나눠요. 돌려주는 순서는 X_train, X_test, y_train, y_test예요(X 둘, y 둘)."
@@ -465,6 +480,7 @@ window.AICE_LESSONS = [
     "g": "머신러닝",
     "title": "머신러닝 기본 개념",
     "sum": "X와 y, 분류와 회귀, 학습용·검증용 데이터",
+    "k": "X · y · drop(axis=1) · train_test_split()",
     "parts": [
       {
         "t": "머신러닝은 데이터에서 규칙을 스스로 찾게 하는 방법이에요. 예를 들어 고객 정보(나이, 요금, 가입 기간)를 보고 '이 고객이 떠날까?'를 맞히게 해요."
@@ -492,6 +508,7 @@ window.AICE_LESSONS = [
     "g": "머신러닝",
     "title": "scikit-learn: 머신러닝 도구",
     "sum": "전처리 → 모델 fit → predict → 평가",
+    "k": "DecisionTreeClassifier() · fit() · predict() · accuracy_score()",
     "parts": [
       {
         "t": "사이킷런(scikit-learn)은 머신러닝 도구 상자예요. 어떤 모델이든 사용법이 같아요. 만들고 → fit(공부) → predict(예측)."
@@ -526,6 +543,7 @@ window.AICE_LESSONS = [
     "g": "머신러닝",
     "title": "머신러닝 모델 종류",
     "sum": "로지스틱 회귀, 결정 트리, 랜덤 포레스트, KNN, 부스팅, 선형 회귀",
+    "k": "max_depth= · RandomForestClassifier(n_estimators=) · LinearRegression · predict_proba()",
     "parts": [
       {
         "t": "모든 사이킷런 모델은 쓰는 법이 같아요. model = 모델이름(설정) → model.fit(X_train, y_train) → model.predict(X_test). 분류 모델은 보통 Classifier, 회귀 모델은 Regressor로 끝나요(LogisticRegression·LinearRegression은 예외)."
@@ -566,6 +584,7 @@ window.AICE_LESSONS = [
     "g": "머신러닝",
     "title": "분류 평가: 정확도, 정밀도, 재현율",
     "sum": "오차 행렬과 지표들, 불균형 데이터에서 조심할 점",
+    "k": "confusion_matrix() · accuracy_score · precision_score · recall_score · f1_score",
     "parts": [
       {
         "t": "분류 결과는 네 가지로 나뉘어요. 실제 1을 1로 맞힘(TP), 실제 0을 0으로 맞힘(TN), 실제 0인데 1이라고 함(FP), 실제 1인데 0이라고 함(FN). 이 개수를 표로 만든 것이 오차 행렬이에요."
@@ -598,6 +617,7 @@ window.AICE_LESSONS = [
     "g": "머신러닝",
     "title": "회귀 평가: MAE, MSE, RMSE, R²",
     "sum": "숫자 예측이 얼마나 빗나갔는지 재는 법",
+    "k": "mean_absolute_error · mean_squared_error · np.sqrt() · r2_score",
     "parts": [
       {
         "t": "회귀는 숫자를 맞히는 문제라 '얼마나 빗나갔나(오차)'로 평가해요. 오차 = 실제값 - 예측값이에요."
@@ -622,6 +642,7 @@ window.AICE_LESSONS = [
     "g": "딥러닝",
     "title": "딥러닝: TensorFlow와 Keras",
     "sum": "신경망, 층과 뉴런, compile → fit → predict",
+    "k": "Sequential · Input(shape=) · Dense(activation=) · compile(optimizer=, loss=, metrics=) · fit()",
     "parts": [
       {
         "t": "딥러닝은 뇌의 신경세포를 흉내 낸 신경망으로 학습하는 머신러닝이에요. 텐서플로(TensorFlow)는 딥러닝 도구이고, 케라스(Keras)는 그 안에서 신경망을 쉽게 쌓게 해 주는 부분이에요."
@@ -654,6 +675,7 @@ window.AICE_LESSONS = [
     "g": "딥러닝",
     "title": "딥러닝 1: 층, 뉴런, 활성화 함수",
     "sum": "Dense 층, relu·sigmoid·softmax, 출력층과 손실 함수 짝, 파라미터 수",
+    "k": "Dense · relu · sigmoid · softmax · Dropout() · count_params()",
     "parts": [
       {
         "t": "신경망은 숫자가 층을 차례로 지나가며 계산되는 구조예요. 입력층(데이터 열들) → 은닉층(중간 계산) → 출력층(답)이에요. Dense는 앞 층의 모든 뉴런과 연결된 층이에요."
@@ -678,6 +700,7 @@ window.AICE_LESSONS = [
     "g": "딥러닝",
     "title": "딥러닝 2: 학습 설정과 콜백",
     "sum": "compile, epochs와 batch_size, 검증 데이터, Dropout, EarlyStopping, ModelCheckpoint",
+    "k": "fit(epochs=, batch_size=, validation_split=) · EarlyStopping(monitor=, patience=) · ModelCheckpoint",
     "parts": [
       {
         "t": "compile은 학습 방법을 정하는 단계예요.\n· optimizer: 가중치를 고치는 방법. 보통 'adam'\n· loss: 줄여 나갈 오차(손실 함수)\n· metrics: 학습 중 지켜볼 점수, 예: ['accuracy']"
@@ -705,6 +728,7 @@ window.AICE_LESSONS = [
     "g": "딥러닝",
     "title": "딥러닝 3: 학습 곡선과 예측",
     "sum": "history 읽기, 과대적합·과소적합 판단, predict 결과 바꾸기",
+    "k": "history.history · predict() · argmax(axis=1) · evaluate() · save()",
     "parts": [
       {
         "t": "fit이 돌려주는 history의 history 속성은 딕셔너리예요. 에포크마다의 loss, accuracy, 그리고 검증 결과 val_loss, val_accuracy가 리스트로 들어 있어요.",
@@ -732,6 +756,7 @@ window.AICE_LESSONS = [
     "g": "부록",
     "title": "오류 메시지 읽는 법",
     "sum": "자주 보는 오류 4가지와 고치는 법",
+    "k": "NameError · KeyError · ValueError · TypeError",
     "parts": [
       {
         "t": "코드가 틀리면 빨간 오류 메시지가 나와요. 맨 마지막 줄이 핵심이에요. '오류 이름: 설명' 형태예요."
@@ -766,6 +791,7 @@ window.AICE_LESSONS = [
     "g": "부록",
     "title": "용어 사전",
     "sum": "시험 문제에 나오는 낯선 단어를 한 줄씩",
+    "k": "DataFrame · Series · 특성 X · 타깃 y · 과대적합 · 에포크",
     "parts": [
       {
         "t": "· 데이터프레임(DataFrame): 판다스의 표\n· 시리즈(Series): 표의 열 하나\n· 인덱스(index): 행 번호나 이름\n· 결측치(NaN): 빈 칸\n· 이상치: 다른 값들과 동떨어진 값\n· 자료형(dtype): int(정수), float(소수), object·str(글자), bool(참거짓)"
